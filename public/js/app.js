@@ -165,7 +165,7 @@
           <a href="#/" id="home-app">Mobile app</a>
         </div>
       </section>`;
-    tilt($('#hero-art'));
+    tiltAll();
     const hai = $('#home-ai');
     if (hai) hai.onclick = (e) => { e.preventDefault(); openAI(true); };
     const happ = $('#home-app');
@@ -177,6 +177,7 @@
       <input class="search" id="q" placeholder="Search lessons, units, teachers…" />
       <div id="sr"></div>
       <div class="grid g3" style="margin-top:16px">${Store.subjects.map(subjectCard).join('')}</div>`;
+    tiltAll();
     $('#q').oninput = () => {
       const r = Store.search($('#q').value);
       if (!$('#q').value.trim()) { $('#sr').innerHTML = ''; return; }
@@ -537,8 +538,27 @@
   function viewVideos() {
     const vids = Store.lessons.filter((l) => l.youtube_id);
     app.innerHTML = `<h1>Videos</h1>
+      <p class="muted">No login needed — tap a video to play.</p>
       <input class="search" id="vq" placeholder="Search videos…" />
+      <div id="vplay"></div>
       <div class="grid g3" id="vg">${vids.slice(0, 24).map(videoCard).join('')}</div>`;
+    const play = (l) => {
+      $('#vplay').innerHTML = `<div class="card" style="margin:14px 0">
+        <iframe class="yt" src="https://www.youtube.com/embed/${esc(l.youtube_id)}?rel=0&autoplay=1" allowfullscreen allow="autoplay; encrypted-media; picture-in-picture"></iframe>
+        <h3>${esc(l.title)}</h3><p class="muted">${esc(l.teacher_name || '')}</p>
+      </div>`;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+    const bind = () => {
+      $('#vg').onclick = (e) => {
+        const a = e.target.closest('[data-yt]');
+        if (!a) return;
+        e.preventDefault();
+        const l = Store.lessonById(a.getAttribute('data-yt'));
+        if (l) play(l);
+      };
+    };
+    bind();
     $('#vq').oninput = () => {
       const q = $('#vq').value.toLowerCase();
       const list = vids.filter((l) => (l.title + l.teacher_name).toLowerCase().includes(q)).slice(0, 36);
@@ -546,7 +566,7 @@
     };
   }
   function videoCard(l) {
-    return `<a class="card" href="#/lesson/${l.id}">
+    return `<a class="card vid-card" href="#/videos" data-yt="${l.id}">
       <img alt="" src="https://i.ytimg.com/vi/${esc(l.youtube_id)}/mqdefault.jpg" style="border-radius:12px;margin-bottom:8px;aspect-ratio:16/9;object-fit:cover;width:100%" />
       <strong>${esc(l.title)}</strong><p class="muted">${esc(l.teacher_name || l.unit_name)}</p></a>`;
   }
@@ -702,16 +722,19 @@
   }
   function viewNotFound() { app.innerHTML = `<div class="empty"><h2>Not found</h2><a href="#/">Go home</a></div>`; }
 
-  function tilt(el) {
-    if (!el || matchMedia('(pointer:coarse)').matches || matchMedia('(prefers-reduced-motion:reduce)').matches) return;
-    el.onmousemove = (e) => {
-      const r = el.getBoundingClientRect();
-      const x = (e.clientX - r.left) / r.width - 0.5;
-      const y = (e.clientY - r.top) / r.height - 0.5;
-      el.style.transform = `rotateY(${x * 10}deg) rotateX(${-y * 10}deg)`;
-    };
-    el.onmouseleave = () => { el.style.transform = ''; };
+  function tiltAll() {
+    if (matchMedia('(pointer:coarse)').matches || matchMedia('(prefers-reduced-motion:reduce)').matches) return;
+    document.querySelectorAll('#hero-art, .sub-card, .feat-card, .vid-card, .stat-card').forEach((el) => {
+      el.onmousemove = (e) => {
+        const r = el.getBoundingClientRect();
+        const x = (e.clientX - r.left) / r.width - 0.5;
+        const y = (e.clientY - r.top) / r.height - 0.5;
+        el.style.transform = 'perspective(900px) rotateY(' + (x * 18) + 'deg) rotateX(' + (-y * 18) + 'deg) scale(1.03)';
+      };
+      el.onmouseleave = () => { el.style.transform = ''; };
+    });
   }
+  function tilt(el) { if (el) tiltAll(); }
 
   function route() {
     paintChrome();
@@ -749,18 +772,65 @@
     const sheet = $('#ai-sheet');
     if (!sheet) return;
     if (on) { sheet.hidden = false; requestAnimationFrame(() => sheet.classList.add('on')); }
-    else { sheet.classList.remove('on'); setTimeout(() => { sheet.hidden = true; }, 220); }
+    else { sheet.classList.remove('on'); setTimeout(() => { if (!sheet.classList.contains('on')) sheet.hidden = true; }, 220); }
+  }
+  function placeAI(x, y) {
+    const fab = $('#ai-fab'), sheet = $('#ai-sheet');
+    if (!fab) return;
+    x = Math.max(8, Math.min(window.innerWidth - fab.offsetWidth - 8, x));
+    y = Math.max(8, Math.min(window.innerHeight - fab.offsetHeight - 8, y));
+    fab.style.left = x + 'px';
+    fab.style.top = y + 'px';
+    fab.style.right = 'auto';
+    fab.style.bottom = 'auto';
+    if (sheet) {
+      const sx = Math.max(8, Math.min(window.innerWidth - 390, x - 260));
+      const sy = Math.max(8, Math.min(window.innerHeight - 480, y - 470));
+      sheet.style.left = sx + 'px';
+      sheet.style.top = sy + 'px';
+      sheet.style.right = 'auto';
+      sheet.style.bottom = 'auto';
+    }
+    localStorage.setItem('al_ai_pos', JSON.stringify({ x: x, y: y }));
   }
   function bindAI() {
-    const sheet = $('#ai-sheet'), log = $('#ai-log');
-    $('#ai-fab').onclick = () => openAI(sheet.hidden || !sheet.classList.contains('on'));
+    const sheet = $('#ai-sheet'), log = $('#ai-log'), fab = $('#ai-fab');
+    try {
+      const p = JSON.parse(localStorage.getItem('al_ai_pos') || 'null');
+      if (p && p.x != null) placeAI(p.x, p.y);
+    } catch (_) {}
+    let dragging = false, moved = false, ox = 0, oy = 0;
+    function down(e) {
+      const t = e.touches ? e.touches[0] : e;
+      const r = fab.getBoundingClientRect();
+      dragging = true; moved = false;
+      ox = t.clientX - r.left; oy = t.clientY - r.top;
+      fab.setPointerCapture && e.pointerId != null && fab.setPointerCapture(e.pointerId);
+    }
+    function move(e) {
+      if (!dragging) return;
+      const t = e.touches ? e.touches[0] : e;
+      moved = true;
+      placeAI(t.clientX - ox, t.clientY - oy);
+      e.preventDefault();
+    }
+    function up() { dragging = false; }
+    fab.addEventListener('pointerdown', down);
+    window.addEventListener('pointermove', move, { passive: false });
+    window.addEventListener('pointerup', up);
+    fab.addEventListener('click', (e) => {
+      if (moved) { e.preventDefault(); e.stopPropagation(); moved = false; return; }
+      openAI(sheet.hidden || !sheet.classList.contains('on'));
+    });
+    const hd = sheet.querySelector('header');
+    if (hd) {
+      hd.addEventListener('pointerdown', (e) => {
+        if (e.target.id === 'ai-close') return;
+        down(e);
+      });
+    }
     $('#ai-close').onclick = () => openAI(false);
     if ($('#foot-ai')) $('#foot-ai').onclick = (e) => { e.preventDefault(); openAI(true); };
-    document.addEventListener('click', (e) => {
-      if (sheet.hidden) return;
-      if (e.target.closest('#ai-sheet') || e.target.closest('#ai-fab') || e.target.closest('#foot-ai') || e.target.closest('#home-ai')) return;
-      openAI(false);
-    });
     $('#ai-form').onsubmit = (e) => {
       e.preventDefault();
       const q = $('#ai-input').value.trim();

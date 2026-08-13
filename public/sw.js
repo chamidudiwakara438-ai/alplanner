@@ -1,5 +1,5 @@
 /* AL Planner service worker — caches the app shell. APIs always go to the network. */
-const CACHE = 'alplanner-shell-2026-08-13w3';
+const CACHE = 'alplanner-shell-2026-08-13w4';
 const SHELL = [
   '/', '/index.html', '/css/style.css',
   '/js/i18n.js', '/js/content.js', '/js/store.js', '/js/sims.js', '/js/app.js',
