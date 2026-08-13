@@ -99,7 +99,7 @@
           <h1>Plan Today,<br><em>Achieve</em><br>Tomorrow.</h1>
           <p class="lead">Video lessons, notes, past papers and a personal progress tracker for all five A/L subjects — Chemistry, Physics, Combined Mathematics, Biology and ICT — in English, Sinhala and Tamil.</p>
           <div class="row">
-            <a class="btn btn-lg" href="#/${join}">+ Start learning free</a>
+            <a class="btn btn-lg" href="#/videos">▶ Watch videos</a>
             <a class="ghost btn-lg" href="#/subjects">Explore subjects</a>
             <a class="ghost btn-lg" href="#/zscore">◎ Z-Score</a>
           </div>
@@ -157,7 +157,7 @@
       <section class="join-banner">
         <h2>Create your account <em>Achieve<br>Tomorrow.</em></h2>
         <p>Free forever for students.</p>
-        <a class="btn btn-lg join-btn" href="#/${join}">✦ Start learning free</a>
+        <a class="btn btn-lg join-btn" href="#/videos">✦ Watch videos free</a>
         <div class="join-pills">
           <a href="#/premium">Premium subscriptions</a>
           <a href="#/premium">Secure payments</a>
@@ -250,7 +250,7 @@
     const sub = Store.subjectById(l.subject_id);
     const rel = Store.related(l);
     const embed = l.youtube_id
-      ? `<iframe class="yt" src="https://www.youtube-nocookie.com/embed/${esc(l.youtube_id)}?rel=0" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>`
+      ? `<iframe class="yt" src="https://www.youtube.com/embed/${esc(l.youtube_id)}?rel=0" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>`
       : `<div class="card">No video attached yet — read the notes below.</div>`;
     app.innerHTML = `<p><a href="#/subject/${l.subject_id}">← ${esc(sub ? sub.name : 'Subject')}</a> · ${esc(l.unit_name)}</p>
       <h1>${esc(l.title)}</h1>
