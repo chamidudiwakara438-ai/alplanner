@@ -5,7 +5,8 @@
   "description": "AL Planner — Sri Lankan A/L learning platform (Chemistry, Combined Mathematics, Biology)",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
+    "start": "node scripts/preview.js",
+    "preview": "node scripts/preview.js",
     "reseed": "node seed.js --force"
   },
   "dependencies": {

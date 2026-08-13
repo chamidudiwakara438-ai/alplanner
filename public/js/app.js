@@ -54,8 +54,8 @@
     if (out) out.onclick = async () => { await Store.logout(); toast('Signed out'); render(); };
     const pill = document.getElementById('cloud-pill');
     if (pill) {
-      pill.textContent = Store.cloud ? 'Firebase' : 'This browser';
-      pill.style.background = Store.cloud ? '#059669' : '#64748b';
+      pill.textContent = Store.api ? 'Saved online' : (Store.cloud ? 'Firebase' : 'This browser only');
+      pill.style.background = (Store.api || Store.cloud) ? '#059669' : '#b45309';
     }
     applyI18n();
     const { path } = hash();

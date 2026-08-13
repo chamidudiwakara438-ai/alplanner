@@ -1,41 +1,25 @@
-# Netlify එකට දාන හැටි (Python ඕන නැහැ)
+# Netlify — student details SAVE වෙන විදිහ
 
-මේ site එක **static** — HTML/CSS/JS විතරයි. Netlify free account එකකින් වැඩ.
+පරණ site එකේ ළමයි register උනාම database එකේ තිබුණා. Zip එක විතරක් drop කළොත් **browser එකේ විතරයි** තියෙන්නේ — ඒක තමයි details save නොවුණේ.
 
-## හොඳම ක්‍රමය: GitHub → Netlify
+දැන් accounts **Netlify cloud database** එකේ තියෙනවා. ඒත් **මුළු GitHub repo එක** deploy කරන්න ඕන.
 
-1. මේ repo එක GitHub එකේ තියෙනවා නම් Netlify.com → **Add new site** → **Import from Git**
-2. repo එක select කරන්න
-3. Settings:
-   - **Build command:** හිස් තියන්න
+## හරි deploy එක (මේක තමයි ඕනේ)
+
+1. https://app.netlify.com → **Add new site** → **Import an existing project** → GitHub
+2. `chamidudiwakara438-ai/alplanner` select කරන්න
+3. Branch: `arena/019ffb5a-alplanner` (හෝ main එකට merge කරලා තියෙනවා නම් main)
+4. Settings:
+   - **Build command:** හිස්
    - **Publish directory:** `public`
-4. **Deploy site**
+5. Deploy
 
-විනාඩි 1න් `https://random-name.netlify.app` එනවා.
+Footer එකේ **Saved online** (කොළ) පේන්න ඕන. ඒක **This browser only** (කහ) නම් functions load වෙලා නැහැ — repo එකම import කරලා තියෙනවද බලන්න.
 
-## නැත්නම්: folder එක drag-and-drop
+ඊට පස්සේ ළමයෙක් register උනාම ඕනම phone/PC එකකින් ඒ email/password එකෙන් login වෙන්න පුළුවන්.
 
-1. Computer එකේ **`public`** folder එක විතරක් zip කරන්න (ඇතුළේ `index.html`, `css/`, `js/`, `data/` තියෙන්න ඕන)
-2. [app.netlify.com/drop](https://app.netlify.com/drop) වලට zip එක හෝ `public` folder එක දාන්න
+පළවෙනි register = Admin.
 
-⚠️ මුළු repo එක (server.py සමඟ) drop කරන්න එපා — ඒකෙන් හිස් page එකක් එනවා. **`public` folder එක විතරක්** drop කරන්න. GitHub import එකේදී `publish = public` automatically වැඩ.
+## වැරදි ක්‍රමය
 
-## Sign in
-
-Demo passwords page එකේ නැහැ.
-
-- **පළවෙනි register වෙන කෙනා = Admin**
-- ඊට පස්සේ register වෙන හැමෝම students
-- Admin panel එකෙන් role මාරු කරන්න පුළුවන්
-
-**Accounts / progress:** Firebase යොදන්න (නිදහස්). Steps: `FIREBASE.md`.
-Keys නැත්නම් site එක තාම වැඩ — ඒත් data ටික ඒ browser එකේ විතරයි.
-
-## Local test
-
-```bash
-cd public
-python3 -m http.server 3000
-```
-
-ඊට පස්සේ http://localhost:3000
+`public` folder zip එක Netlify Drop වලට දැම්මොත් site එක පේනවා — **ඒත් ළමයිගේ details save වෙන්නේ නැහැ.** Functions එන්නේ Git deploy එකෙන් විතරයි.

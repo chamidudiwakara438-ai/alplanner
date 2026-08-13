@@ -1,10 +1,19 @@
-# AL Planner — 100% static. No Python, no Node server, no SQLite.
-# Connect this GitHub repo to Netlify (or drag-and-drop the `public/` folder).
+# Website in public/ + student database in Netlify Functions/Blobs.
+# Deploy the WHOLE GitHub repo (not only the zip) so accounts save.
 
 [build]
   publish = "public"
+  functions = "netlify/functions"
 
-# SPA hash/history fallback
+[functions]
+  node_bundler = "esbuild"
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/api/:splat"
+  status = 200
+  force = true
+
 [[redirects]]
   from = "/*"
   to = "/index.html"
@@ -16,18 +25,3 @@
     X-Frame-Options = "SAMEORIGIN"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
-
-[[headers]]
-  for = "/data/*"
-  [headers.values]
-    Cache-Control = "public, max-age=3600"
-
-[[headers]]
-  for = "/css/*"
-  [headers.values]
-    Cache-Control = "public, max-age=86400"
-
-[[headers]]
-  for = "/js/*"
-  [headers.values]
-    Cache-Control = "public, max-age=3600"

@@ -225,6 +225,30 @@
     }
   }
 
+  async function api(method, path, body) {
+    const r = await fetch('/api' + path, {
+      method,
+      credentials: 'include',
+      headers: body ? { 'Content-Type': 'application/json' } : {},
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    let data = {};
+    try { data = await r.json(); } catch (_) {}
+    if (!r.ok) throw new Error(data.error || 'Request failed');
+    return data;
+  }
+  async function hydrateApi() {
+    const st = await api('GET', '/state');
+    S.user = st.user;
+    S._cache.progress = st.progress || {};
+    S._cache.plans = st.plans || [];
+    S._cache.settings = st.settings || { exam_date: '2027-08-09', weekly_target: '10' };
+    S._cache.payments = st.payments || [];
+    S._cache.resources = st.resources || [];
+    S._cache.users = st.users || [];
+    S._cache.exams = st.exams || [];
+  }
+
   S.init = async function () {
     const [vids, kb] = await Promise.all([
       fetch('/data/videos.json').then((r) => r.json()),
@@ -236,6 +260,19 @@
     if (window.CONTENT && CONTENT.extraPracticals) {
       S.practicals = PRACTICALS.concat(CONTENT.extraPracticals);
     }
+    try {
+      const h = await fetch('/api/health', { credentials: 'include' });
+      if (h.ok) {
+        const info = await h.json();
+        if (info && info.ok) {
+          S.api = true;
+          S.cloud = true;
+          await hydrateApi();
+          S.ready = true;
+          return S;
+        }
+      }
+    } catch (_) {}
     if (cloudOn()) {
       S.cloud = true;
       try {
@@ -282,6 +319,11 @@
     if (!email.includes('@')) throw new Error('Enter a valid email');
     if (String(b.password || '').length < 6) throw new Error('Password must be 6+ characters');
     const name = String(b.name || '').trim() || 'Student';
+    if (S.api) {
+      const out = await api('POST', '/auth/register', Object.assign({}, b, { email, name }));
+      await hydrateApi();
+      return S.user || out.user;
+    }
     if (S.cloud) {
       try {
         const cred = await auth().createUserWithEmailAndPassword(email, b.password);
@@ -324,6 +366,11 @@
     return S.user;
   };
   S.login = async function (email, password) {
+    if (S.api) {
+      await api('POST', '/auth/login', { email, password });
+      await hydrateApi();
+      return S.user;
+    }
     if (S.cloud) {
       try {
         const cred = await auth().signInWithEmailAndPassword(String(email || '').toLowerCase(), password);
@@ -344,7 +391,8 @@
     return S.user;
   };
   S.logout = async function () {
-    if (S.cloud) { try { await auth().signOut(); } catch (_) {} }
+    if (S.api) { try { await api('POST', '/auth/logout'); } catch (_) {} }
+    if (S.cloud && !S.api) { try { await auth().signOut(); } catch (_) {} }
     const ls = loadLS(); delete ls.sid; saveLS(ls);
     S.user = null;
     S._cache.progress = {};
@@ -358,6 +406,11 @@
     const row = Object.assign({ completed: 0, watched: 0, favourite: 0 }, S.stateOf(lessonId));
     row[field] = row[field] ? 0 : 1;
     if (field === 'completed' && row.completed) row.completed_at = new Date().toISOString();
+    if (S.api) {
+      const saved = await api('POST', '/progress/toggle', { lessonId, field });
+      S._cache.progress[key] = saved;
+      return saved;
+    }
     if (S.cloud) {
       S._cache.progress[key] = row;
       await fs().collection('users').doc(String(S.user.id)).collection('progress').doc(String(lessonId)).set(row);
@@ -405,6 +458,11 @@
   };
   S.setSettings = async function (p) {
     const next = Object.assign(S.settings(), p);
+    if (S.api) {
+      const out = await api('PUT', '/settings', next);
+      S._cache.settings = out.settings || next;
+      return S._cache.settings;
+    }
     if (S.cloud && S.user) {
       S._cache.settings = next;
       await fs().collection('users').doc(String(S.user.id)).collection('settings').doc('me').set(next);
@@ -419,6 +477,11 @@
   S.addPlan = async function (lessonId, date) {
     if (!S.user) throw new Error('Please sign in');
     const row = { uid: S.user.id, lesson_id: +lessonId, plan_date: date, done: 0 };
+    if (S.api) {
+      const out = await api('POST', '/planner', { lessonId, date });
+      S._cache.plans.push(out.plan);
+      return;
+    }
     if (S.cloud) {
       const ref = await fs().collection('users').doc(String(S.user.id)).collection('plans').add(row);
       S._cache.plans.push(Object.assign({ id: ref.id }, row));
@@ -430,6 +493,12 @@
     saveLS(ls);
   };
   S.togglePlan = async function (id) {
+    if (S.api) {
+      await api('POST', '/planner/' + id + '/toggle');
+      const p = (S._cache.plans || []).find((x) => String(x.id) === String(id));
+      if (p) p.done = p.done ? 0 : 1;
+      return;
+    }
     if (S.cloud && S.user) {
       const p = (S._cache.plans || []).find((x) => String(x.id) === String(id));
       if (!p) return;
@@ -443,6 +512,11 @@
     saveLS(ls);
   };
   S.delPlan = async function (id) {
+    if (S.api) {
+      await api('DELETE', '/planner/' + id);
+      S._cache.plans = (S._cache.plans || []).filter((x) => String(x.id) !== String(id));
+      return;
+    }
     if (S.cloud && S.user) {
       S._cache.plans = (S._cache.plans || []).filter((x) => String(x.id) !== String(id));
       await fs().collection('users').doc(String(S.user.id)).collection('plans').doc(String(id)).delete();
@@ -464,6 +538,11 @@
   S.addResource = async function (title, category, subjectId) {
     if (!S.user) throw new Error('Please sign in');
     const row = { title, category, subject_id: +subjectId || null, status: S.user.role === 'admin' ? 'approved' : 'pending', by: S.user.name, uid: S.user.id };
+    if (S.api) {
+      const out = await api('POST', '/resources', { title, category, subjectId });
+      S._cache.resources.push(out.resource);
+      return;
+    }
     if (S.cloud) {
       const ref = await fs().collection('resources').add(row);
       S._cache.resources.push(Object.assign({ id: ref.id }, row));
@@ -475,6 +554,12 @@
     saveLS(ls);
   };
   S.approveResource = async function (id, status) {
+    if (S.api) {
+      await api('PUT', '/resources/' + id, { status });
+      const r = (S._cache.resources || []).find((x) => String(x.id) === String(id));
+      if (r) r.status = status;
+      return;
+    }
     if (S.cloud) {
       const r = (S._cache.resources || []).find((x) => String(x.id) === String(id));
       if (r) r.status = status;
@@ -492,6 +577,12 @@
   };
   S.setRole = async function (id, role) {
     const next = role === 'admin' ? 'admin' : 'student';
+    if (S.api) {
+      await api('PUT', '/users/' + id, { role: next });
+      const u = (S._cache.users || []).find((x) => String(x.id) === String(id));
+      if (u) u.role = next;
+      return;
+    }
     if (S.cloud) {
       const u = (S._cache.users || []).find((x) => String(x.id) === String(id));
       if (u) u.role = next;
@@ -517,6 +608,11 @@
   S.pay = async function (method, note) {
     if (!S.user) throw new Error('Please sign in');
     const row = { uid: S.user.id, name: S.user.name, method, note, status: 'pending', amount: 990, created_at: new Date().toISOString() };
+    if (S.api) {
+      const out = await api('POST', '/premium', { method, note });
+      S._cache.payments.push(out.payment);
+      return;
+    }
     if (S.cloud) {
       const ref = await fs().collection('payments').add(row);
       S._cache.payments.push(Object.assign({ id: ref.id }, row));
@@ -530,6 +626,11 @@
   S.payments = function () { return S.cloud ? (S._cache.payments || []) : (loadLS().payments || []); };
   S.decidePay = async function (id, ok) {
     const status = ok ? 'approved' : 'rejected';
+    if (S.api) {
+      await api('PUT', '/payments/' + id, { ok: !!ok });
+      await hydrateApi();
+      return;
+    }
     if (S.cloud) {
       const p = (S._cache.payments || []).find((x) => String(x.id) === String(id));
       if (!p) return;
@@ -561,6 +662,12 @@
   S.saveExam = async function (row) {
     if (!S.user) throw new Error('Please sign in');
     const rec = Object.assign({ uid: S.user.id, at: new Date().toISOString() }, row);
+    if (S.api) {
+      await api('POST', '/exam', rec);
+      S._cache.exams = S._cache.exams || [];
+      S._cache.exams.push(rec);
+      return rec;
+    }
     const ls = loadLS();
     ls.exams = ls.exams || [];
     ls.exams.push(rec);
