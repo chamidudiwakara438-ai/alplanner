@@ -667,6 +667,43 @@
     app.querySelectorAll('[data-no]').forEach((b) => { b.onclick = () => { Store.decidePay(b.getAttribute('data-no'), false); viewAdmin(); }; });
   }
 
+  function viewContact() {
+    app.innerHTML = `<div class="card" style="max-width:520px;margin:20px auto">
+      <h1>Contact Us</h1>
+      <p class="muted">Questions about the platform, premium or a missing lesson — write to us.</p>
+      <form id="cf">
+        <label class="field">Name<input name="name" required></label>
+        <label class="field">Email<input name="email" type="email" required></label>
+        <label class="field">Message<textarea name="message" rows="5" required></textarea></label>
+        <p id="cerr" class="muted" style="color:#b91c1c"></p>
+        <button class="btn" type="submit">Send</button>
+      </form>
+    </div>`;
+    $('#cf').onsubmit = async (e) => {
+      e.preventDefault();
+      const fd = Object.fromEntries(new FormData(e.target));
+      try {
+        if (Store.api) await Store._api ? null : fetch('/api/contact', { method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(fd) });
+        else {
+          const ls = JSON.parse(localStorage.getItem('alplanner-v1') || '{}');
+          ls.messages = ls.messages || [];
+          ls.messages.push(Object.assign({ at: new Date().toISOString() }, fd));
+          localStorage.setItem('alplanner-v1', JSON.stringify(ls));
+        }
+        toast('Message sent');
+        e.target.reset();
+      } catch (err) { $('#cerr').textContent = err.message || 'Could not send'; }
+    };
+  }
+  function viewPrivacy() {
+    app.innerHTML = `<div class="card" style="max-width:720px;margin:20px auto">
+      <h1>Privacy Policy</h1>
+      <p>AL Planner stores the name, email, school and study progress you enter so you can sign in on another device.</p>
+      <p>Passwords are hashed. Session cookies are httpOnly. We do not sell student data.</p>
+      <p>Uploads you send are reviewed by an admin before they are public. You can ask us to delete your account from Contact Us.</p>
+      <p class="muted">Last updated 13 August 2026.</p>
+    </div>`;
+  }
   function viewNotFound() { app.innerHTML = `<div class="empty"><h2>Not found</h2><a href="#/">Go home</a></div>`; }
 
   function tilt(el) {
@@ -707,6 +744,8 @@
     if (a === 'settings') return viewSettings();
     if (a === 'premium') return viewPremium();
     if (a === 'admin') return viewAdmin();
+    if (a === 'contact') return viewContact();
+    if (a === 'privacy') return viewPrivacy();
     viewNotFound();
   }
 
