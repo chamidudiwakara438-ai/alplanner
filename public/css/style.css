@@ -161,7 +161,12 @@ html,body{
   background-size:auto,48px 48px,48px 48px;
 }
 .sign-pill{border-radius:999px!important;padding:8px 16px!important;background:#fff;box-shadow:0 1px 0 rgba(15,23,42,.04)}
-.sub-card{padding:22px 22px 18px;background:#fff;border:0;box-shadow:0 14px 40px rgba(15,39,68,.06)}
+.sub-card{padding:0 0 18px;background:#fff;border:0;box-shadow:0 14px 40px rgba(15,39,68,.06);overflow:hidden}
+.sub-photo{width:100%;height:148px;object-fit:cover;display:block}
+.sub-card h3,.sub-card .muted,.sub-card .sub-meta{padding:0 18px}
+.ai-sheet{transform:translateY(18px) scale(.96);opacity:0;transition:transform .22s ease,opacity .22s ease;pointer-events:none}
+.ai-sheet.on{transform:none;opacity:1;pointer-events:auto}
+.ai-sheet[hidden]{display:block!important;visibility:hidden}
 .sub-card h3{display:flex;align-items:center;gap:10px;font-size:22px;margin:0 0 8px}
 .sub-ic{width:36px;height:36px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:18px;flex:0 0 36px}
 .sub-meta{color:#2563eb;font-weight:700;margin:10px 0 0}

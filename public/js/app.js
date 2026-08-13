@@ -76,10 +76,12 @@
     c.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
   }
 
+  const SUB_PHOTO = { 1: '/assets/subjects/chem.jpg', 2: '/assets/subjects/maths.jpg', 3: '/assets/subjects/bio.jpg', 4: '/assets/subjects/phys.jpg', 5: '/assets/subjects/ict.jpg' };
   function subjectCard(s) {
     const n = Store.lessons.filter((l) => l.subject_id === s.id).length;
     const u = Store.unitsOf(s.id).length;
     return `<a class="card sub-card tilt" href="#/subject/${s.id}" style="--c:${s.color1}">
+      <img class="sub-photo" src="${SUB_PHOTO[s.id] || ''}" alt="" />
       <h3><span class="sub-ic" style="background:${s.color1}">${esc(s.icon)}</span> ${esc(s.name)}</h3>
       <div class="muted">${esc(s.name_si)} · ${esc(s.name_ta)}</div>
       <p class="sub-meta">${u} units · ${n} lessons</p>
@@ -165,7 +167,7 @@
       </section>`;
     tilt($('#hero-art'));
     const hai = $('#home-ai');
-    if (hai) hai.onclick = (e) => { e.preventDefault(); const s = $('#ai-sheet'); if (s) s.hidden = false; };
+    if (hai) hai.onclick = (e) => { e.preventDefault(); openAI(true); };
     const happ = $('#home-app');
     if (happ) happ.onclick = (e) => { e.preventDefault(); const b = $('#install-btn'); if (b && !b.hidden) b.click(); else toast('Use the browser Install icon'); };
   }
@@ -271,14 +273,14 @@
     app.querySelectorAll('[data-f]').forEach((b) => {
       b.onclick = async () => {
         try { await Store.toggle(l.id, b.getAttribute('data-f')); viewLesson(id); }
-        catch (e) { toast(e.message); go('/login'); }
+        catch (e) { toast('Sign in only if you want to save progress'); }
       };
     });
     $('#add-plan').onclick = async () => {
       try {
         await Store.addPlan(l.id, new Date().toISOString().slice(0, 10));
         toast('Added to today\'s plan');
-      } catch (e) { toast(e.message); go('/login'); }
+      } catch (e) { toast('Sign in to use the planner'); }
     };
   }
 
@@ -491,7 +493,6 @@
   }
 
   function viewExam() {
-    if (!Store.user) return go('/login');
     const hist = Store.examHistory();
     app.innerHTML = `<h1>🎯 Exam mode</h1>
       <p class="muted">Timed MCQs from the A/L bank. Auto-marked.</p>
@@ -744,11 +745,22 @@
     viewNotFound();
   }
 
+  function openAI(on) {
+    const sheet = $('#ai-sheet');
+    if (!sheet) return;
+    if (on) { sheet.hidden = false; requestAnimationFrame(() => sheet.classList.add('on')); }
+    else { sheet.classList.remove('on'); setTimeout(() => { sheet.hidden = true; }, 220); }
+  }
   function bindAI() {
     const sheet = $('#ai-sheet'), log = $('#ai-log');
-    $('#ai-fab').onclick = () => { sheet.hidden = !sheet.hidden; };
-    $('#ai-close').onclick = () => { sheet.hidden = true; };
-    $('#foot-ai').onclick = (e) => { e.preventDefault(); sheet.hidden = false; };
+    $('#ai-fab').onclick = () => openAI(sheet.hidden || !sheet.classList.contains('on'));
+    $('#ai-close').onclick = () => openAI(false);
+    if ($('#foot-ai')) $('#foot-ai').onclick = (e) => { e.preventDefault(); openAI(true); };
+    document.addEventListener('click', (e) => {
+      if (sheet.hidden) return;
+      if (e.target.closest('#ai-sheet') || e.target.closest('#ai-fab') || e.target.closest('#foot-ai') || e.target.closest('#home-ai')) return;
+      openAI(false);
+    });
     $('#ai-form').onsubmit = (e) => {
       e.preventDefault();
       const q = $('#ai-input').value.trim();

@@ -723,13 +723,14 @@
   };
 
   S.examHistory = function () {
-    if (!S.user) return [];
-    return (loadLS().exams || []).filter((e) => String(e.uid) === String(S.user.id));
+    const uid = S.user ? S.user.id : 'guest';
+    const local = (loadLS().exams || []).filter((e) => String(e.uid) === String(uid));
+    if (S.api && S.user) return (S._cache.exams || []).concat(local.filter((e) => e.uid === 'guest'));
+    return local;
   };
   S.saveExam = async function (row) {
-    if (!S.user) throw new Error('Please sign in');
-    const rec = Object.assign({ uid: S.user.id, at: new Date().toISOString() }, row);
-    if (S.api) {
+    const rec = Object.assign({ uid: S.user ? S.user.id : 'guest', at: new Date().toISOString() }, row);
+    if (S.api && S.user) {
       await api('POST', '/exam', rec);
       S._cache.exams = S._cache.exams || [];
       S._cache.exams.push(rec);
