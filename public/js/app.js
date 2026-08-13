@@ -187,7 +187,12 @@
   function viewSubject(id) {
     const s = Store.subjectById(id);
     if (!s) return viewNotFound();
-    const units = Store.unitsOf(s.id);
+    const units = Store.unitsOf(s.id).filter((u) => Store.lessonsOfUnit(u.id).length);
+    const papers = Store.resources(s.id);
+    const sims = Store.sims.filter((sim) => {
+      const map = { 1: 'chem', 2: 'maths', 3: 'bio', 4: 'phys', 5: 'ict' };
+      return sim.subject === map[s.id];
+    });
     app.innerHTML = `<p><a href="#/subjects">← Subjects</a></p>
       <h1>${esc(s.icon)} ${esc(s.name)}</h1>
       <p class="muted">${esc(s.name_si)} · ${esc(s.name_ta)}</p>
@@ -201,8 +206,39 @@
               <div class="muted">${esc(l.teacher_name || '')}</div></div>
               <div>${st.completed ? '✅' : ''}${st.watched ? ' ▶' : ''}${l.youtube_id ? '' : ' <span class="badge">notes</span>'}</div>
             </div>`;
-          }).join('') || '<p class="muted">Lessons coming soon.</p>'}</div>`;
-      }).join('')}`;
+          }).join('')}</div>`;
+      }).join('') || '<p class="muted">Lessons coming soon.</p>'}
+
+      <section class="join-banner" style="margin-top:36px;text-align:left">
+        <h2 style="font-size:28px">Notes, papers &amp; uploads</h2>
+        <p class="muted">Download the subject pack, or upload your own PDF for admin approval.</p>
+        <div class="grid g2" style="margin:16px 0">${papers.map((r) => {
+          const href = Store.fileUrl(r);
+          return `<div class="card"><strong>${esc(r.title)}</strong>
+            <p class="muted">${esc(r.category)} · ${esc(r.status)}${r.fileName ? ' · ' + esc(r.fileName) : ''}</p>
+            ${href ? `<a class="btn" href="${esc(href)}" target="_blank" rel="noopener">Download</a>` : ''}</div>`;
+        }).join('') || '<p class="muted">No files for this subject yet.</p>'}</div>
+        ${Store.user ? `<form id="sfup" class="card">
+          <div class="row">
+            <input name="title" placeholder="Title" required style="flex:1;padding:8px;border:1px solid var(--line);border-radius:10px">
+            <select name="category"><option value="notes">Notes</option><option value="short_notes">Short notes</option><option value="past_papers">Past papers</option><option value="question_papers">Questions</option><option value="model_papers">Model papers</option></select>
+          </div>
+          <label class="field">File (PDF / image / zip, max 3.5 MB)<input type="file" name="file" accept=".pdf,.doc,.docx,.ppt,.pptx,.txt,.png,.jpg,.jpeg,.zip"></label>
+          <p id="uperr" class="muted" style="color:#b91c1c"></p>
+          <button class="btn" type="submit">Upload</button>
+        </form>` : '<p><a class="btn" href="#/login">Sign in to upload</a></p>'}
+      </section>
+      ${sims.length ? `<h3>Related labs</h3><div class="row">${sims.map((sim) => `<a class="ghost" href="#/sim/${sim.type}">${esc(sim.title)}</a>`).join('')}</div>` : ''}`;
+    const f = $('#sfup');
+    if (f) f.onsubmit = async (e) => {
+      e.preventDefault();
+      const fd = new FormData(f);
+      try {
+        await Store.addResource(fd.get('title'), fd.get('category'), s.id, f.file.files[0] || null);
+        toast(Store.user.role === 'admin' ? 'Published' : 'Sent for admin approval');
+        viewSubject(id);
+      } catch (err) { $('#uperr').textContent = err.message; }
+    };
   }
 
   function viewLesson(id) {
@@ -384,20 +420,27 @@
     app.innerHTML = `<h1 data-i="nav.resources">${t('nav.resources')}</h1>
       ${Store.user ? `<form id="rf" class="card"><div class="row">
         <input name="title" placeholder="Title" required style="flex:1;padding:8px;border:1px solid var(--line);border-radius:10px">
-        <select name="category"><option value="notes">Notes</option><option value="past_papers">Past papers</option><option value="question_papers">Questions</option></select>
+        <select name="category"><option value="notes">Notes</option><option value="past_papers">Past papers</option><option value="question_papers">Questions</option><option value="short_notes">Short notes</option></select>
         <select name="subject_id">${Store.subjects.map((s) => `<option value="${s.id}">${esc(s.name)}</option>`).join('')}</select>
-        <button class="btn">Upload listing</button></div>
-        <p class="muted">Files stay on your device in this Netlify build (listing only).</p></form>` : '<p><a href="#/login">Sign in</a> to add resources.</p>'}
+        </div>
+        <label class="field">File (PDF / image / zip, max 3.5 MB)<input type="file" name="file" accept=".pdf,.doc,.docx,.ppt,.pptx,.txt,.png,.jpg,.jpeg,.zip"></label>
+        <p id="rerr" class="muted" style="color:#b91c1c"></p>
+        <button class="btn" type="submit">Upload</button></form>` : '<p><a href="#/login">Sign in</a> to add resources.</p>'}
       <div class="grid g2">${list.map((r) => {
         const s = Store.subjectById(r.subject_id);
-        return `<div class="card"><strong>${esc(r.title)}</strong><p class="muted">${esc(r.category)} · ${esc(s ? s.name : '')} · ${esc(r.status)}</p></div>`;
+        const href = Store.fileUrl(r);
+        return `<div class="card"><strong>${esc(r.title)}</strong><p class="muted">${esc(r.category)} · ${esc(s ? s.name : '')} · ${esc(r.status)}</p>
+          ${href ? `<a class="btn" href="${esc(href)}" target="_blank" rel="noopener">Download</a>` : ''}</div>`;
       }).join('')}</div>`;
     const f = $('#rf');
     if (f) f.onsubmit = async (e) => {
       e.preventDefault();
-      const fd = Object.fromEntries(new FormData(f));
-      await Store.addResource(fd.title, fd.category, fd.subject_id);
-      toast('Saved'); viewResources();
+      const fd = new FormData(f);
+      try {
+        await Store.addResource(fd.get('title'), fd.get('category'), fd.get('subject_id'), f.file.files[0] || null);
+        toast(Store.user.role === 'admin' ? 'Published' : 'Sent for admin approval');
+        viewResources();
+      } catch (err) { $('#rerr').textContent = err.message; }
     };
   }
 

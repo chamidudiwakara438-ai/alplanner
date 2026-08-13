@@ -529,23 +529,49 @@
     const ls = loadLS(); ls.plans = (ls.plans || []).filter((x) => x.id !== +id); saveLS(ls);
   };
   const SEED_RES = [
-    { id: 1, title: 'Atomic Structure — Short Notes', category: 'notes', subject_id: 1, status: 'approved' },
-    { id: 2, title: 'Mole Concept — Calculation Pack', category: 'question_papers', subject_id: 1, status: 'approved' },
-    { id: 3, title: 'Limits & Continuity — Worked Examples', category: 'notes', subject_id: 2, status: 'approved' },
-    { id: 4, title: 'Cell Structure — Illustrated Notes', category: 'notes', subject_id: 3, status: 'approved' },
-    { id: 5, title: 'AL Physics Model Paper 2026', category: 'model_papers', subject_id: 4, status: 'approved' },
+    { id: 's1', title: 'Atomic Structure — Short Notes', category: 'notes', subject_id: 1, status: 'approved', href: '/data/notes/chem-atom.html' },
+    { id: 's2', title: 'Mole Concept — Calculation Pack', category: 'question_papers', subject_id: 1, status: 'approved', href: '/data/notes/chem-atom.html' },
+    { id: 's3', title: 'Limits & Continuity — Worked Examples', category: 'notes', subject_id: 2, status: 'approved', href: '/data/notes/cm-limits.html' },
+    { id: 's4', title: 'Integration formula sheet', category: 'short_notes', subject_id: 2, status: 'approved', href: '/data/notes/cm-limits.html' },
+    { id: 's5', title: 'Cell Structure — Illustrated Notes', category: 'notes', subject_id: 3, status: 'approved', href: '/data/notes/bio-cell.html' },
+    { id: 's6', title: 'AL Physics Model Paper 2026', category: 'model_papers', subject_id: 4, status: 'approved', href: '/data/notes/phy-model.html' },
   ];
-  S.resources = function () {
-    const extra = S.cloud ? (S._cache.resources || []) : (loadLS().resources || []);
-    return SEED_RES.concat(extra).filter((r) => r.status === 'approved' || (S.user && S.user.role === 'admin'));
+  S.fileUrl = function (r) {
+    if (r.href) return r.href;
+    if (r.hasFile) return '/api/resources/' + r.id + '/file';
+    return '';
   };
-  S.addResource = async function (title, category, subjectId) {
+  S.resources = function (subjectId) {
+    const extra = S.cloud ? (S._cache.resources || []) : (loadLS().resources || []);
+    return SEED_RES.concat(extra).filter((r) => {
+      if (subjectId && Number(r.subject_id) !== Number(subjectId)) return false;
+      return r.status === 'approved' || (S.user && (S.user.role === 'admin' || String(S.user.id) === String(r.uid)));
+    });
+  };
+  async function fileToB64(file) {
+    const buf = await file.arrayBuffer();
+    const bytes = new Uint8Array(buf);
+    const chunk = 0x8000;
+    let bin = '';
+    for (let i = 0; i < bytes.length; i += chunk) {
+      bin += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
+    }
+    return btoa(bin);
+  }
+  S.addResource = async function (title, category, subjectId, file) {
     if (!S.user) throw new Error('Please sign in');
-    const row = { title, category, subject_id: +subjectId || null, status: S.user.role === 'admin' ? 'approved' : 'pending', by: S.user.name, uid: S.user.id };
+    if (file && file.size > 3.5 * 1024 * 1024) throw new Error('File must be under 3.5 MB');
+    const row = { title, category, subject_id: +subjectId || null, status: S.user.role === 'admin' ? 'approved' : 'pending', by: S.user.name, uid: S.user.id, hasFile: !!file, fileName: file ? file.name : '' };
+    const payload = { title, category, subjectId };
+    if (file) {
+      payload.fileName = file.name;
+      payload.mime = file.type || 'application/octet-stream';
+      payload.data = await fileToB64(file);
+    }
     if (S.api) {
-      const out = await api('POST', '/resources', { title, category, subjectId });
+      const out = await api('POST', '/resources', payload);
       S._cache.resources.push(out.resource);
-      return;
+      return out.resource;
     }
     if (S.cloud) {
       const ref = await fs().collection('resources').add(row);

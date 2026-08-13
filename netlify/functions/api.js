@@ -10,7 +10,9 @@ const fs = require('fs');
 const path = require('path');
 
 const FILE = path.join(__dirname, '..', '..', 'data', 'students.json');
+const UP_DIR = path.join(__dirname, '..', '..', 'data', 'uploads');
 const COOKIE = 'al_session';
+const MAX_FILE = 3.5 * 1024 * 1024;
 
 function emptyDb() {
   return {
@@ -19,13 +21,43 @@ function emptyDb() {
   };
 }
 
-async function blobStore() {
+async function blobStore(name) {
   try {
     const { getStore } = require('@netlify/blobs');
-    return getStore('alplanner');
+    return getStore(name || 'alplanner');
   } catch (_) {
     return null;
   }
+}
+
+async function putFile(id, buf, mime) {
+  const store = await blobStore('alplanner-files');
+  if (store) {
+    await store.set(String(id), buf, { metadata: { mime: mime || 'application/octet-stream' } });
+    return;
+  }
+  fs.mkdirSync(UP_DIR, { recursive: true });
+  fs.writeFileSync(path.join(UP_DIR, String(id)), buf);
+  fs.writeFileSync(path.join(UP_DIR, String(id) + '.json'), JSON.stringify({ mime: mime || 'application/octet-stream' }));
+}
+
+async function getFile(id) {
+  const store = await blobStore('alplanner-files');
+  if (store) {
+    const buf = await store.get(String(id), { type: 'arrayBuffer' });
+    if (!buf) return null;
+    let mime = 'application/octet-stream';
+    try {
+      const meta = await store.getMetadata(String(id));
+      if (meta && meta.metadata && meta.metadata.mime) mime = meta.metadata.mime;
+    } catch (_) {}
+    return { buf: Buffer.from(buf), mime };
+  }
+  const fp = path.join(UP_DIR, String(id));
+  if (!fs.existsSync(fp)) return null;
+  let mime = 'application/octet-stream';
+  try { mime = JSON.parse(fs.readFileSync(fp + '.json', 'utf8')).mime || mime; } catch (_) {}
+  return { buf: fs.readFileSync(fp), mime };
 }
 
 async function loadDb() {

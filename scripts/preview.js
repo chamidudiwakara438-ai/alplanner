@@ -25,8 +25,10 @@ const server = http.createServer(async (req, res) => {
       body: Buffer.concat(chunks).toString('utf8') || null,
     };
     const out = await handler(event);
-    res.writeHead(out.statusCode || 200, out.headers || {});
-    res.end(out.body || '');
+    const headers = out.headers || {};
+    res.writeHead(out.statusCode || 200, headers);
+    if (out.isBase64Encoded) res.end(Buffer.from(out.body || '', 'base64'));
+    else res.end(out.body || '');
     return;
   }
   let file = path.normalize(path.join(ROOT, url.pathname === '/' ? '/index.html' : url.pathname));
