@@ -247,6 +247,10 @@
     S._cache.resources = st.resources || [];
     S._cache.users = st.users || [];
     S._cache.exams = st.exams || [];
+    try {
+      const board = await api('GET', '/leaderboard');
+      S._cache.board = board.rows || [];
+    } catch (_) { S._cache.board = S._cache.board || []; }
   }
 
   S.init = async function () {
@@ -575,6 +579,43 @@
     if (S.cloud) return S._cache.users || [];
     return (loadLS().users || []).map(publicUser);
   };
+  S.changePassword = async function (oldPass, password) {
+    if (S.api) {
+      await api('POST', '/auth/password', { old: oldPass, password });
+      return;
+    }
+    if (S.cloud && !S.api) {
+      const u = auth().currentUser;
+      if (!u) throw new Error('Please sign in');
+      const cred = firebase.auth.EmailAuthProvider.credential(u.email, oldPass);
+      await u.reauthenticateWithCredential(cred);
+      await u.updatePassword(password);
+      return;
+    }
+    const ls = loadLS();
+    const u = sessionUser();
+    if (!u || u.pass !== await sha(oldPass)) throw new Error('Current password is wrong');
+    if (String(password || '').length < 6) throw new Error('Password must be 6+ characters');
+    u.pass = await sha(password);
+    saveLS(ls);
+  };
+  S.deleteUser = async function (id) {
+    if (!S.user || S.user.role !== 'admin') throw new Error('Admins only');
+    if (String(id) === String(S.user.id)) throw new Error('You cannot delete yourself');
+    if (S.api) {
+      await api('DELETE', '/users/' + id);
+      await hydrateApi();
+      return;
+    }
+    if (S.cloud) {
+      S._cache.users = (S._cache.users || []).filter((x) => String(x.id) !== String(id));
+      await fs().collection('users').doc(String(id)).delete();
+      return;
+    }
+    const ls = loadLS();
+    ls.users = (ls.users || []).filter((x) => String(x.id) !== String(id));
+    saveLS(ls);
+  };
   S.setRole = async function (id, role) {
     const next = role === 'admin' ? 'admin' : 'student';
     if (S.api) {
@@ -666,6 +707,10 @@
       await api('POST', '/exam', rec);
       S._cache.exams = S._cache.exams || [];
       S._cache.exams.push(rec);
+      try {
+        const board = await api('GET', '/leaderboard');
+        S._cache.board = board.rows || [];
+      } catch (_) {}
       return rec;
     }
     const ls = loadLS();
@@ -709,14 +754,19 @@
     }));
   };
   S.board = function () {
+    if (S.api && (S._cache.board || []).length) {
+      return (S._cache.board || []).map((r) => Object.assign({}, r, {
+        me: S.user && String(r.id) === String(S.user.id),
+      }));
+    }
     const users = S.cloud ? (S._cache.users || []) : (loadLS().users || []).map(publicUser);
-    const exams = loadLS().exams || [];
+    const exams = (S.api || S.cloud) ? (S._cache.exams || []) : (loadLS().exams || []);
     const prog = S.prog();
     return users.filter((u) => u && u.role !== 'admin').map((u) => {
       const done = Object.keys(prog).filter((k) => k.startsWith(u.id + ':') && prog[k].completed).length;
       const mine = exams.filter((e) => String(e.uid) === String(u.id));
       const pts = done * 20 + mine.reduce((a, e) => a + (e.score || 0) * 2, 0);
-      return { name: (u.name || 'Student').split(' ')[0], school: u.school || '', pts, done, me: S.user && String(u.id) === String(S.user.id) };
+      return { id: u.id, name: (u.name || 'Student').split(' ')[0], school: u.school || '', pts, done, me: S.user && String(u.id) === String(S.user.id) };
     }).sort((a, b) => b.pts - a.pts).slice(0, 20);
   };
 

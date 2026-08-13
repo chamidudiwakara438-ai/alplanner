@@ -29,7 +29,7 @@
       ['/', 'Home'], ['/subjects', 'Subjects'], ['/videos', 'Videos'],
       ['/zscore', 'Z-Score'], ['/resources', 'Resources'], ['/lab', 'AL Lab'],
       ['/practicals', 'Practicals'], ['/board', 'Leaderboard'], ['/exam', 'Exam Mode'],
-      ['/tutors', 'Tutors'], ['/search', 'Search'],
+      ['/tutors', 'Tutors'], ['/planner', 'Planner'], ['/search', 'Search'],
     ];
     if (u) items.push(['/dashboard', 'Dashboard']);
     if (u && u.role === 'admin') items.push(['/admin', 'Admin']);
@@ -509,11 +509,27 @@
         <label class="field">Exam date<input type="date" name="exam_date" value="${esc(st.exam_date)}"></label>
         <label class="field">Weekly lesson target<input type="number" name="weekly_target" value="${esc(st.weekly_target)}" min="1" max="100"></label>
         <button class="btn">Save</button>
+      </form>
+      <form id="pwf" class="card" style="max-width:420px;margin-top:16px">
+        <h3>Change password</h3>
+        <label class="field">Current<input type="password" name="old" required minlength="6"></label>
+        <label class="field">New<input type="password" name="password" required minlength="6"></label>
+        <p id="pwerr" class="muted" style="color:#b91c1c"></p>
+        <button class="btn" type="submit">Update password</button>
       </form>`;
     $('#sf').onsubmit = async (e) => {
       e.preventDefault();
       await Store.setSettings(Object.fromEntries(new FormData(e.target)));
       toast('Saved');
+    };
+    $('#pwf').onsubmit = async (e) => {
+      e.preventDefault();
+      const fd = Object.fromEntries(new FormData(e.target));
+      try {
+        await Store.changePassword(fd.old, fd.password);
+        toast('Password updated');
+        e.target.reset();
+      } catch (err) { $('#pwerr').textContent = err.message; }
     };
   }
 
@@ -644,13 +660,14 @@
     b.onclick = () => deferredPrompt && deferredPrompt.prompt();
     $('#foot-install').onclick = (ev) => { ev.preventDefault(); if (deferredPrompt) deferredPrompt.prompt(); else toast('Use the browser Install icon'); };
   });
-  $('#lang-btn').onclick = () => {
-    const cur = localStorage.getItem('al_lang') || 'en';
-    const next = cur === 'en' ? 'si' : cur === 'si' ? 'ta' : 'en';
-    localStorage.setItem('al_lang', next);
-    applyI18n(); render();
-  };
-  setInterval(tickCountdown, 30000);
+  document.querySelectorAll('#lang-pills button').forEach((b) => {
+    b.onclick = () => {
+      localStorage.setItem('al_lang', b.getAttribute('data-lang') || 'en');
+      applyI18n();
+      render();
+    };
+  });
+  setInterval(tickClock, 1000);
 
   Store.init().then(() => {
     bindAI(); halo(); render();

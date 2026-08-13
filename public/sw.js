@@ -1,6 +1,10 @@
-/* AL Planner service worker — caches the app shell. APIs are local. */
-const CACHE = 'alplanner-shell-2026-08-13w';
-const SHELL = ['/', '/index.html', '/css/style.css', '/js/i18n.js', '/js/content.js', '/js/store.js', '/js/sims.js', '/js/app.js', '/js/firebase-config.js', '/manifest.json', '/assets/icon.svg'];
+/* AL Planner service worker — caches the app shell. APIs always go to the network. */
+const CACHE = 'alplanner-shell-2026-08-13x';
+const SHELL = [
+  '/', '/index.html', '/css/style.css',
+  '/js/i18n.js', '/js/content.js', '/js/store.js', '/js/sims.js', '/js/app.js',
+  '/js/firebase-config.js', '/manifest.json', '/assets/logo.svg',
+];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));
@@ -11,6 +15,7 @@ self.addEventListener('activate', (e) => {
 self.addEventListener('fetch', (e) => {
   const url = new URL(e.request.url);
   if (e.request.method !== 'GET' || url.origin !== location.origin) return;
+  if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/.netlify/')) return;
   e.respondWith(
     caches.match(e.request).then((hit) => hit || fetch(e.request).then((res) => {
       if (res.ok && (url.pathname.startsWith('/data/') || url.pathname.startsWith('/js/') || url.pathname.startsWith('/css/'))) {

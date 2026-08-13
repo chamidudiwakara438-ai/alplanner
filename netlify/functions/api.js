@@ -1,7 +1,9 @@
 'use strict';
 /**
- * Student database for Netlify — saves accounts/progress in Netlify Blobs
- * (or data/students.json when run locally).
+ * Student database for Netlify.
+ * Accounts / progress / planner / payments live in Netlify Blobs (cloud)
+ * or data/students.json when you run `npm start` locally.
+ * No Python. No SQLite. No Express.
  */
 const crypto = require('crypto');
 const fs = require('fs');
@@ -11,7 +13,10 @@ const FILE = path.join(__dirname, '..', '..', 'data', 'students.json');
 const COOKIE = 'al_session';
 
 function emptyDb() {
-  return { users: [], sessions: [], progress: {}, plans: [], resources: [], payments: [], exams: [], settings: {} };
+  return {
+    users: [], sessions: [], progress: {}, plans: [], resources: [],
+    payments: [], exams: [], settings: {}, messages: [],
+  };
 }
 
 async function blobStore() {
@@ -40,6 +45,7 @@ async function loadDb() {
 }
 
 async function saveDb(db) {
+  db.sessions = (db.sessions || []).filter((s) => s.expires > Date.now()).slice(-400);
   const store = await blobStore();
   if (store) {
     await store.setJSON('db', db);
@@ -57,7 +63,7 @@ function publicUser(u) {
   return {
     id: u.id, name: u.name, email: u.email, role: u.role, school: u.school,
     district: u.district, al_year: u.al_year, medium: u.medium, stream: u.stream,
-    premium_until: u.premium_until || '',
+    premium_until: u.premium_until || '', status: u.status || 'active',
   };
 }
 function parseCookies(event) {
@@ -76,9 +82,11 @@ function userFrom(db, event) {
   if (!se) return null;
   return (db.users || []).find((u) => u.id === se.uid) || null;
 }
-function cookieHdr(token, clear) {
-  if (clear) return COOKIE + '=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax';
-  return COOKIE + '=' + token + '; Path=/; Max-Age=' + (30 * 86400) + '; HttpOnly; SameSite=Lax';
+function cookieHdr(token, clear, event) {
+  const proto = String((event && event.headers && (event.headers['x-forwarded-proto'] || event.headers['X-Forwarded-Proto'])) || '');
+  const secure = /https/i.test(proto) ? '; Secure' : '';
+  if (clear) return COOKIE + '=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax' + secure;
+  return COOKIE + '=' + token + '; Path=/; Max-Age=' + (30 * 86400) + '; HttpOnly; SameSite=Lax' + secure;
 }
 function json(body, status, extraHdr) {
   return {
@@ -93,11 +101,29 @@ function apiPath(event) {
   try { p = new URL(raw, 'https://x').pathname; } catch (_) { p = event.path || ''; }
   p = p.replace(/^\/.netlify\/functions\/api\/?/, '/').replace(/^\/api\/?/, '/');
   if (!p.startsWith('/')) p = '/' + p;
+  if (p.length > 1 && p.endsWith('/')) p = p.slice(0, -1);
   return p;
+}
+function newToken() { return crypto.randomBytes(24).toString('hex'); }
+function loginSession(db, user) {
+  const token = newToken();
+  db.sessions.push({ token, uid: user.id, expires: Date.now() + 30 * 864e5 });
+  return token;
+}
+function boardRows(db) {
+  return (db.users || []).filter((u) => u.role !== 'admin').map((u) => {
+    const done = Object.keys(db.progress || {}).filter((k) => k.startsWith(u.id + ':') && db.progress[k].completed).length;
+    const exams = (db.exams || []).filter((e) => String(e.uid) === String(u.id));
+    const pts = done * 20 + exams.reduce((a, e) => a + (Number(e.score) || 0) * 2, 0);
+    return { id: u.id, name: String(u.name || 'Student').split(' ')[0], school: u.school || '', pts, done };
+  }).sort((a, b) => b.pts - a.pts || b.done - a.done).slice(0, 20);
 }
 
 exports.handler = async (event) => {
   const method = (event.httpMethod || 'GET').toUpperCase();
+  if (method === 'OPTIONS') {
+    return { statusCode: 204, headers: { 'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type' }, body: '' };
+  }
   const p = apiPath(event);
   let body = {};
   if (event.body) {
@@ -107,7 +133,27 @@ exports.handler = async (event) => {
   const me = userFrom(db, event);
 
   if (method === 'GET' && (p === '/' || p === '/health')) {
-    return json({ ok: true, students: db.users.filter((u) => u.role === 'student').length, save: 'cloud' });
+    return json({
+      ok: true,
+      students: db.users.filter((u) => u.role === 'student').length,
+      save: (await blobStore()) ? 'cloud' : 'file',
+    });
+  }
+
+  if (method === 'GET' && p === '/meta') {
+    return json({
+      districts: ['Ampara','Anuradhapura','Badulla','Batticaloa','Colombo','Galle','Gampaha','Hambantota','Jaffna','Kalutara','Kandy','Kegalle','Kilinochchi','Kurunegala','Mannar','Matale','Matara','Monaragala','Mullaitivu','Nuwara Eliya','Polonnaruwa','Puttalam','Ratnapura','Trincomalee','Vavuniya'],
+      streams: ['Physical Science','Biological Science','Commerce','Arts','Engineering Technology','Bio Systems Technology'],
+      years: ['A/L 2027','A/L 2028','A/L 2029'],
+    });
+  }
+
+  if (method === 'GET' && p === '/stats') {
+    return json({ students: db.users.filter((u) => u.role === 'student').length, users: db.users.length });
+  }
+
+  if (method === 'GET' && p === '/leaderboard') {
+    return json({ rows: boardRows(db) });
   }
 
   if (method === 'POST' && p === '/auth/register') {
@@ -121,15 +167,16 @@ exports.handler = async (event) => {
     const user = {
       id: String(Date.now()), name, email, salt, pass: hashPass(password, salt),
       role: db.users.length === 0 ? 'admin' : 'student',
-      school: body.school || '', district: body.district || '',
-      al_year: body.al_year || 'A/L 2027', medium: body.medium || 'en', stream: body.stream || '',
-      premium_until: '', created_at: new Date().toISOString(),
+      school: String(body.school || '').slice(0, 120),
+      district: String(body.district || '').slice(0, 40),
+      al_year: body.al_year || 'A/L 2027', medium: body.medium || 'en',
+      stream: String(body.stream || '').slice(0, 60),
+      premium_until: '', status: 'active', created_at: new Date().toISOString(),
     };
     db.users.push(user);
-    const token = crypto.randomBytes(24).toString('hex');
-    db.sessions.push({ token, uid: user.id, expires: Date.now() + 30 * 864e5 });
+    const token = loginSession(db, user);
     await saveDb(db);
-    return json({ user: publicUser(user) }, 200, { 'Set-Cookie': cookieHdr(token) });
+    return json({ user: publicUser(user) }, 200, { 'Set-Cookie': cookieHdr(token, false, event) });
   }
 
   if (method === 'POST' && p === '/auth/login') {
@@ -137,17 +184,17 @@ exports.handler = async (event) => {
     const password = String(body.password || '');
     const u = db.users.find((x) => x.email === email);
     if (!u || u.pass !== hashPass(password, u.salt)) return json({ error: 'Incorrect email or password' }, 401);
-    const token = crypto.randomBytes(24).toString('hex');
-    db.sessions.push({ token, uid: u.id, expires: Date.now() + 30 * 864e5 });
+    if (u.status === 'suspended') return json({ error: 'This account is suspended' }, 403);
+    const token = loginSession(db, u);
     await saveDb(db);
-    return json({ user: publicUser(u) }, 200, { 'Set-Cookie': cookieHdr(token) });
+    return json({ user: publicUser(u) }, 200, { 'Set-Cookie': cookieHdr(token, false, event) });
   }
 
   if (method === 'POST' && p === '/auth/logout') {
     const tok = parseCookies(event)[COOKIE];
     db.sessions = db.sessions.filter((s) => s.token !== tok);
     await saveDb(db);
-    return json({ ok: true }, 200, { 'Set-Cookie': cookieHdr('', true) });
+    return json({ ok: true }, 200, { 'Set-Cookie': cookieHdr('', true, event) });
   }
 
   if (method === 'GET' && p === '/auth/me') return json({ user: publicUser(me) });
@@ -170,7 +217,32 @@ exports.handler = async (event) => {
     });
   }
 
+  if (method === 'POST' && p === '/contact') {
+    const row = {
+      id: String(Date.now()),
+      name: String(body.name || '').slice(0, 80) || 'Anonymous',
+      email: String(body.email || '').slice(0, 120),
+      message: String(body.message || '').slice(0, 2000),
+      created_at: new Date().toISOString(),
+    };
+    if (!row.message) return json({ error: 'Write a message' }, 400);
+    db.messages.push(row);
+    await saveDb(db);
+    return json({ ok: true });
+  }
+
   if (!me) return json({ error: 'Please sign in' }, 401);
+
+  if (method === 'POST' && p === '/auth/password') {
+    const old = String(body.old || '');
+    const password = String(body.password || '');
+    if (password.length < 6) return json({ error: 'Password must be 6+ characters' }, 400);
+    if (me.pass !== hashPass(old, me.salt)) return json({ error: 'Current password is wrong' }, 400);
+    me.salt = crypto.randomBytes(12).toString('hex');
+    me.pass = hashPass(password, me.salt);
+    await saveDb(db);
+    return json({ ok: true });
+  }
 
   if (method === 'POST' && p === '/progress/toggle') {
     const lessonId = String(body.lessonId || '');
@@ -186,13 +258,20 @@ exports.handler = async (event) => {
   }
 
   if (method === 'PUT' && p === '/settings') {
-    db.settings[me.id] = Object.assign({ exam_date: '2027-08-09', weekly_target: '10' }, db.settings[me.id] || {}, body || {});
+    db.settings[me.id] = Object.assign(
+      { exam_date: '2027-08-09', weekly_target: '10' },
+      db.settings[me.id] || {},
+      {
+        exam_date: String(body.exam_date || '2027-08-09').slice(0, 10),
+        weekly_target: String(body.weekly_target || '10').slice(0, 4),
+      }
+    );
     await saveDb(db);
     return json({ settings: db.settings[me.id] });
   }
 
   if (method === 'POST' && p === '/planner') {
-    const row = { id: String(Date.now()), uid: me.id, lesson_id: Number(body.lessonId), plan_date: body.date, done: 0 };
+    const row = { id: String(Date.now()), uid: me.id, lesson_id: Number(body.lessonId), plan_date: String(body.date || '').slice(0, 10), done: 0 };
     db.plans.push(row);
     await saveDb(db);
     return json({ plan: row });
@@ -255,16 +334,51 @@ exports.handler = async (event) => {
   if (method === 'PUT' && p.startsWith('/users/') && me.role === 'admin') {
     const id = p.split('/')[2];
     const u = db.users.find((x) => x.id === id);
-    if (u) u.role = body.role === 'admin' ? 'admin' : 'student';
+    if (!u) return json({ error: 'Not found' }, 404);
+    if (body.role) {
+      const next = body.role === 'admin' ? 'admin' : 'student';
+      if (u.id === me.id && next !== 'admin') return json({ error: 'You cannot remove your own admin role' }, 400);
+      u.role = next;
+    }
+    if (body.status) u.status = body.status === 'suspended' ? 'suspended' : 'active';
+    await saveDb(db);
+    return json({ ok: true });
+  }
+
+  if (method === 'DELETE' && p.startsWith('/users/') && me.role === 'admin') {
+    const id = p.split('/')[2];
+    if (String(id) === String(me.id)) return json({ error: 'You cannot delete yourself' }, 400);
+    db.users = db.users.filter((x) => String(x.id) !== String(id));
+    db.sessions = db.sessions.filter((s) => String(s.uid) !== String(id));
+    Object.keys(db.progress || {}).forEach((k) => { if (k.startsWith(id + ':')) delete db.progress[k]; });
+    db.plans = (db.plans || []).filter((x) => String(x.uid) !== String(id));
     await saveDb(db);
     return json({ ok: true });
   }
 
   if (method === 'POST' && p === '/exam') {
-    const rec = Object.assign({ uid: me.id, at: new Date().toISOString() }, body || {});
+    const rec = {
+      uid: me.id,
+      at: new Date().toISOString(),
+      subj: String(body.subj || 'mixed').slice(0, 20),
+      score: Number(body.score) || 0,
+      total: Number(body.total) || 0,
+      seconds: Number(body.seconds) || 0,
+    };
     db.exams.push(rec);
     await saveDb(db);
     return json({ ok: true });
+  }
+
+  if (method === 'GET' && p === '/admin/overview' && me.role === 'admin') {
+    return json({
+      students: db.users.filter((u) => u.role === 'student').length,
+      admins: db.users.filter((u) => u.role === 'admin').length,
+      payments: db.payments.length,
+      pending: db.payments.filter((p0) => p0.status === 'pending').length,
+      exams: db.exams.length,
+      messages: (db.messages || []).slice(-50).reverse(),
+    });
   }
 
   return json({ error: 'Not found' }, 404);

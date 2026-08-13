@@ -1,6 +1,8 @@
 # Firebase එක යොදන හැටි (free)
 
-Netlify = website. Firebase = accounts + progress (හැම phone/PC එකකින්ම එකම login).
+**මුලින්ම අවශ්‍ය නැහැ.** GitHub → Netlify deploy කළොත් accounts save වෙන්නේ Netlify Functions වලින් (`Saved online`).
+
+Firebase optional backup එකක් විතරයි (keys හිස් නම් ignore වෙනවා).
 
 Credit card ඕන නැහැ. **Spark (free)** plan එක ඇති.
 
@@ -47,7 +49,7 @@ window.FIREBASE_CONFIG = {
 
 ## 6) Netlify එකට
 
-`public` folder එක zip කරලා https://app.netlify.com/drop වලට දාන්න.
+මුළු repo එක GitHub එකෙන් Netlify එකට Import කරන්න (NETLIFY.md). Drop zip එකෙන් accounts save වෙන්නේ නැහැ.
 
 Footer එකේ green **Firebase** pill එකක් පේන්න ඕන. ඒක **This browser** නම් keys හිස්.
 
