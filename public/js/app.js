@@ -80,15 +80,16 @@
     const n = Store.lessons.filter((l) => l.subject_id === s.id).length;
     const u = Store.unitsOf(s.id).length;
     return `<a class="card sub-card tilt" href="#/subject/${s.id}" style="--c:${s.color1}">
-      <div class="badge">${esc(s.code)}</div>
-      <h3>${esc(s.icon)} ${esc(s.name)}</h3>
+      <h3><span class="sub-ic" style="background:${s.color1}">${esc(s.icon)}</span> ${esc(s.name)}</h3>
       <div class="muted">${esc(s.name_si)} · ${esc(s.name_ta)}</div>
-      <p>${u} units · ${n} lessons</p>
+      <p class="sub-meta">${u} units · ${n} lessons</p>
     </a>`;
   }
 
   function viewHome() {
     const st = Store.stats();
+    const teachers = new Set(Store.lessons.map((l) => l.teacher_name).filter(Boolean)).size;
+    const join = Store.user ? 'dashboard' : 'register';
     app.innerHTML = `
       <section class="hero">
         <div>
@@ -96,7 +97,7 @@
           <h1>Plan Today,<br><em>Achieve</em><br>Tomorrow.</h1>
           <p class="lead">Video lessons, notes, past papers and a personal progress tracker for all five A/L subjects — Chemistry, Physics, Combined Mathematics, Biology and ICT — in English, Sinhala and Tamil.</p>
           <div class="row">
-            <a class="btn btn-lg" href="#/${Store.user ? 'dashboard' : 'register'}">+ Start learning free</a>
+            <a class="btn btn-lg" href="#/${join}">+ Start learning free</a>
             <a class="ghost btn-lg" href="#/subjects">Explore subjects</a>
             <a class="ghost btn-lg" href="#/zscore">◎ Z-Score</a>
           </div>
@@ -107,23 +108,66 @@
           <div class="float-stat" style="top:16%"><span>▶</span><div><b>${st.videos}+</b><span>Video lessons</span></div></div>
           <div class="float-stat" style="top:36%"><span>▣</span><div><b>${st.subjects}</b><span>Subjects</span></div></div>
           <div class="float-stat" style="top:56%"><span>▤</span><div><b>${st.units}</b><span>Units</span></div></div>
-          <div class="float-stat" style="top:76%"><span>👤</span><div><b>${new Set(Store.lessons.map((l)=>l.teacher_name).filter(Boolean)).size}</b><span>Expert teachers</span></div></div>
+          <div class="float-stat" style="top:76%"><span>👤</span><div><b>${teachers}</b><span>Expert teachers</span></div></div>
         </div>
       </section>
       <div class="grid g4">
         <div class="stat-card"><div class="stat">${st.videos}+</div><div class="muted">Video lessons</div></div>
         <div class="stat-card"><div class="stat">${st.subjects}</div><div class="muted">Subjects</div></div>
         <div class="stat-card"><div class="stat">${st.units}</div><div class="muted">Units</div></div>
-        <div class="stat-card"><div class="stat">${new Set(Store.lessons.map((l)=>l.teacher_name).filter(Boolean)).size}</div><div class="muted">Expert teachers</div></div>
+        <div class="stat-card"><div class="stat">${teachers}</div><div class="muted">Expert teachers</div></div>
       </div>
       <div class="battle"><h2>Choose your battlefield</h2><p>Five subjects. Every unit. Structured like the real syllabus.</p></div>
-      <h2 style="margin-top:8px">Subjects</h2>
       <div class="grid g3">${Store.subjects.map(subjectCard).join('')}</div>
-      <h2>Latest videos</h2>
+
+      <section class="topper">
+        <h2>Everything a <em>topper</em> needs</h2>
+        <p>One account unlocks the whole learning loop.</p>
+        <div class="grid g4 feat-grid">
+          <article class="feat-card">
+            <div class="feat-ic" style="background:#7c3aed">▶</div>
+            <h3>Learn from videos</h3>
+            <p>Curated YouTube lessons embedded per lesson — no distractions.</p>
+          </article>
+          <article class="feat-card">
+            <div class="feat-ic" style="background:#06b6d4">↓</div>
+            <h3>Download everything</h3>
+            <p>Notes, short notes, question packs, past &amp; model papers as real PDFs.</p>
+          </article>
+          <article class="feat-card">
+            <div class="feat-ic" style="background:#ec4899">↑</div>
+            <h3>Share &amp; get approved</h3>
+            <p>Upload your own materials — admins review quality before publishing.</p>
+          </article>
+          <article class="feat-card">
+            <div class="feat-ic" style="background:#22c55e">↗</div>
+            <h3>Track your climb</h3>
+            <p>Complete lessons, watch videos, favourite topics and watch your progress ring fill.</p>
+          </article>
+        </div>
+      </section>
+
+      <h2 class="sec-h">Latest videos</h2>
       <div class="grid g3">${Store.lessons.filter((l) => l.youtube_id).slice(0, 6).map((l) =>
-        `<a class="card" href="#/lesson/${l.id}"><strong>${esc(l.title)}</strong><p class="muted">${esc(l.teacher_name || l.unit_name)}</p></a>`
-      ).join('')}</div>`;
+        `<a class="card vid-card" href="#/lesson/${l.id}"><strong>${esc(l.title)}</strong><p class="muted">${esc(l.teacher_name || l.unit_name)}</p></a>`
+      ).join('')}</div>
+
+      <section class="join-banner">
+        <h2>Create your account <em>Achieve<br>Tomorrow.</em></h2>
+        <p>Free forever for students.</p>
+        <a class="btn btn-lg join-btn" href="#/${join}">✦ Start learning free</a>
+        <div class="join-pills">
+          <a href="#/premium">Premium subscriptions</a>
+          <a href="#/premium">Secure payments</a>
+          <a href="#/" id="home-ai">AI learning assistant</a>
+          <a href="#/" id="home-app">Mobile app</a>
+        </div>
+      </section>`;
     tilt($('#hero-art'));
+    const hai = $('#home-ai');
+    if (hai) hai.onclick = (e) => { e.preventDefault(); const s = $('#ai-sheet'); if (s) s.hidden = false; };
+    const happ = $('#home-app');
+    if (happ) happ.onclick = (e) => { e.preventDefault(); const b = $('#install-btn'); if (b && !b.hidden) b.click(); else toast('Use the browser Install icon'); };
   }
 
   function viewSubjects() {
