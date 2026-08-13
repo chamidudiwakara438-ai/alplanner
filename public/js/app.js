@@ -99,7 +99,7 @@
           <h1>Plan Today,<br><em>Achieve</em><br>Tomorrow.</h1>
           <p class="lead">Video lessons, notes, past papers and a personal progress tracker for all five A/L subjects — Chemistry, Physics, Combined Mathematics, Biology and ICT — in English, Sinhala and Tamil.</p>
           <div class="row">
-            <a class="btn btn-lg" href="#/videos">▶ Watch videos</a>
+            <a class="btn btn-lg" href="#/${Store.user ? 'videos' : 'register'}">▶ Watch videos</a>
             <a class="ghost btn-lg" href="#/subjects">Explore subjects</a>
             <a class="ghost btn-lg" href="#/zscore">◎ Z-Score</a>
           </div>
@@ -542,9 +542,10 @@
   }
 
   function viewVideos() {
+    if (!Store.user) return needLogin('Video බලන්න Sign up කරන්න');
     const vids = Store.lessons.filter((l) => l.youtube_id);
     app.innerHTML = `<h1>Videos</h1>
-      <p class="muted">No login needed — tap a video to play.</p>
+      <p class="muted">Signed in — tap a video to play.</p>
       <input class="search" id="vq" placeholder="Search videos…" />
       <div id="vplay"></div>
       <div class="grid g3" id="vg">${vids.slice(0, 24).map(videoCard).join('')}</div>`;
@@ -888,3 +889,4 @@
       <p class="muted">Open this site via Netlify (or a local static server), not as a raw file.</p></div>`;
   });
 })();
+;
