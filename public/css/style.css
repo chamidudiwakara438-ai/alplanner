@@ -6,7 +6,6 @@
 }
 *{box-sizing:border-box}
 html,body{margin:0;padding:0;min-height:100%;background:linear-gradient(180deg,#eaf4ff 0%,#f4f8ff 42%,#fff);color:var(--ink);font-family:"Plus Jakarta Sans",Outfit,"Noto Sans Sinhala","Noto Sans Tamil",system-ui,sans-serif}
-body{padding-bottom:76px}
 a{color:var(--acc);text-decoration:none}
 button,input,select,textarea{font:inherit}
 button{cursor:pointer}
@@ -46,7 +45,7 @@ code{background:#eef6fc;padding:.1em .35em;border-radius:6px;font-size:.9em}
 .site-foot .copy span{color:#60a5fa;font-weight:700}
 .ver-pill{display:inline-block;margin-top:8px;background:#059669;color:#fff;font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px}
 .install-btn{display:block;margin-top:10px;background:transparent;border:1px solid #334155;color:#e2e8f0;border-radius:10px;padding:6px 10px}
-.copy{opacity:.7}
+.copy{opacity:1}
 .tabbar{display:none;position:fixed;left:0;right:0;bottom:0;z-index:45;background:rgba(255,255,255,.92);backdrop-filter:blur(12px);border-top:1px solid var(--line);padding:6px 8px var(--safe);justify-content:space-around}
 .tabbar a{flex:1;text-align:center;padding:8px 4px;font-size:11px;font-weight:700;color:var(--muted);border-radius:10px}
 .tabbar a.on{color:var(--acc);background:#e0f2fe}
