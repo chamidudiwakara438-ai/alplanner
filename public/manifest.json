@@ -1,0 +1,13 @@
+{
+  "name": "AL Planner",
+  "short_name": "AL Planner",
+  "description": "Sri Lankan G.C.E. A/L learning platform — Chemistry, Combined Maths, Biology, Physics, ICT",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#e8f4fc",
+  "theme_color": "#0284c7",
+  "lang": "en",
+  "icons": [
+    { "src": "/assets/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

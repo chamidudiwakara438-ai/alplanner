@@ -2,25 +2,19 @@
 
 A complete, full-stack learning platform for G.C.E. **A/L Chemistry, Combined Mathematics and Biology** students: video lessons, notes, past papers, student uploads with admin approval, progress tracking, a tutor marketplace, and a full admin control room — wrapped in a premium 3D glass UI in **English, Sinhala and Tamil**.
 
-## Quick start
+## Quick start (Netlify — no Python)
 
-The backend ships in **two interchangeable runtimes** — use whichever you prefer:
+The live website is a **static** app in `public/`. Deploy that folder to Netlify (see **NETLIFY.md**). No Flask, no Node server, no SQLite.
 
 ```bash
-# Python (Flask)
-cd al-planner
-pip install flask
-python server.py         # → http://localhost:3000
-
-# — or —
-
-# Node.js (Express)
-cd al-planner
-npm install
-npm start                # → http://localhost:3000
+# Preview on your PC
+cd public
+python3 -m http.server 3000   # → http://localhost:3000
 ```
 
-Both serve the identical API + website and share `data/` and `uploads/`. The database (SQLite) is created and seeded automatically on first run, including real PDF study materials and 24 video lessons.
+First person to **Register** becomes admin. There are no demo passwords on the site.
+
+> The old `server.py` / `server.js` files are optional (local SQLite edition). Netlify does not run them.
 
 ### Demo accounts
 

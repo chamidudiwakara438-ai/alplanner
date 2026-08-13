@@ -1,0 +1,43 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function isOwner(uid) { return signedIn() && request.auth.uid == uid; }
+    function isAdmin() {
+      return signedIn() &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    match /users/{uid} {
+      allow read: if signedIn();
+      allow create: if isOwner(uid)
+        && request.resource.data.role in ['student', 'admin'];
+      allow update: if isAdmin()
+        || (isOwner(uid) && request.resource.data.role == resource.data.role);
+      allow delete: if isAdmin() && !isOwner(uid);
+
+      match /progress/{lessonId} {
+        allow read, write: if isOwner(uid) || isAdmin();
+      }
+      match /settings/{id} {
+        allow read, write: if isOwner(uid) || isAdmin();
+      }
+      match /plans/{planId} {
+        allow read, write: if isOwner(uid) || isAdmin();
+      }
+    }
+
+    match /payments/{id} {
+      allow read: if signedIn() && (resource.data.uid == request.auth.uid || isAdmin());
+      allow create: if signedIn() && request.resource.data.uid == request.auth.uid;
+      allow update: if isAdmin();
+    }
+
+    match /resources/{id} {
+      allow read: if true;
+      allow create: if signedIn();
+      allow update, delete: if isAdmin();
+    }
+  }
+}
