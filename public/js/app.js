@@ -26,19 +26,19 @@
   function navHTML() {
     const u = Store.user;
     const items = [
-      ['/', 'nav.home'], ['/subjects', 'nav.subjects'], ['/lab', 'nav.lab'],
-      ['/practicals', 'nav.practicals'], ['/resources', 'nav.resources'],
-      ['/tutors', 'nav.tutors'], ['/planner', 'nav.planner'],
-      ['/exam', 'nav.exam'], ['/board', 'nav.board'],
+      ['/', 'Home'], ['/subjects', 'Subjects'], ['/videos', 'Videos'],
+      ['/zscore', 'Z-Score'], ['/resources', 'Resources'], ['/lab', 'AL Lab'],
+      ['/practicals', 'Practicals'], ['/board', 'Leaderboard'], ['/exam', 'Exam Mode'],
+      ['/tutors', 'Tutors'], ['/search', 'Search'],
     ];
-    if (u) items.push(['/dashboard', 'nav.dashboard']);
-    if (u && u.role === 'admin') items.push(['/admin', 'nav.admin']);
-    return items.map(([href, k]) => `<a href="#${href}" data-i="${k}">${t(k)}</a>`).join('');
+    if (u) items.push(['/dashboard', 'Dashboard']);
+    if (u && u.role === 'admin') items.push(['/admin', 'Admin']);
+    return items.map(([href, label]) => `<a href="#${href}">${label}</a>`).join('');
   }
   function authSlot() {
     const u = Store.user;
-    if (u) return `<span class="muted">${esc(u.name.split(' ')[0])}</span> <button class="ghost" id="btn-out">${t('nav.logout')}</button>`;
-    return `<a class="ghost" href="#/login">${t('nav.login')}</a> <a class="btn" href="#/register">${t('nav.register')}</a>`;
+    if (u) return `<span class="muted">${esc(u.name.split(' ')[0])}</span> <button class="ghost" id="btn-out">Sign out</button>`;
+    return `<a class="ghost" href="#/login">Sign in</a>`;
   }
   function tabbar() {
     const u = Store.user;
@@ -63,17 +63,17 @@
       const href = (a.getAttribute('href') || '').replace('#', '');
       if (href === path || (href !== '/' && path.startsWith(href))) a.classList.add('on');
     });
-    tickCountdown();
+    const lang = localStorage.getItem('al_lang') || 'en';
+    document.querySelectorAll('#lang-pills button').forEach((b) => b.classList.toggle('on', b.getAttribute('data-lang') === lang));
+    tickClock();
   }
-  function tickCountdown() {
-    const el = $('#nav-countdown');
-    const st = Store.settings();
-    if (!st.exam_date) { el.hidden = true; return; }
-    const left = new Date(st.exam_date + 'T00:00:00') - Date.now();
-    el.hidden = false;
-    if (left <= 0) { el.textContent = 'A/L day!'; return; }
-    const d = Math.floor(left / 864e5), h = Math.floor((left % 864e5) / 36e5), m = Math.floor((left % 36e5) / 6e4);
-    el.textContent = d + 'd ' + h + 'h ' + m + 'm';
+  function tickClock() {
+    const g = $('#greet'), c = $('#clock');
+    if (!g || !c) return;
+    const now = new Date();
+    const h = now.getHours();
+    g.textContent = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : h < 21 ? 'Good evening' : 'Good night';
+    c.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
   }
 
   function subjectCard(s) {
@@ -92,27 +92,32 @@
     app.innerHTML = `
       <section class="hero">
         <div>
-          <h1 data-i="home.h">${t('home.h')}</h1>
-          <p class="lead" data-i="home.lead">${t('home.lead')}</p>
+          <div class="pill-green"><i></i> Sri Lanka's Smart A/L &amp; O/L Learning Platform</div>
+          <h1>Plan Today,<br><em>Achieve</em><br>Tomorrow.</h1>
+          <p class="lead">Video lessons, notes, past papers and a personal progress tracker for all five A/L subjects — Chemistry, Physics, Combined Mathematics, Biology and ICT — in English, Sinhala and Tamil.</p>
           <div class="row">
-            <a class="btn" href="#/${Store.user ? 'dashboard' : 'register'}" data-i="home.cta">${t('home.cta')}</a>
-            <a class="ghost" href="#/subjects" data-i="home.browse">${t('home.browse')}</a>
+            <a class="btn btn-lg" href="#/${Store.user ? 'dashboard' : 'register'}">+ Start learning free</a>
+            <a class="ghost btn-lg" href="#/subjects">Explore subjects</a>
+            <a class="ghost btn-lg" href="#/zscore">◎ Z-Score</a>
           </div>
+          <div class="checks">✓ English &nbsp; ✓ සිංහල &nbsp; ✓ தமிழ்</div>
         </div>
         <div class="hero-art" id="hero-art">
-          <span class="chip" style="top:18%;left:10%">⚗️ Chemistry</span>
-          <span class="chip" style="top:28%;right:12%">∑ Combined Maths</span>
-          <span class="chip" style="bottom:28%;left:18%">⚛️ Physics</span>
-          <span class="chip" style="bottom:16%;right:16%">🧬 Biology</span>
+          <img class="hero-photo" src="/assets/hero.jpg" alt="Study desk" />
+          <div class="float-stat" style="top:16%"><span>▶</span><div><b>${st.videos}+</b><span>Video lessons</span></div></div>
+          <div class="float-stat" style="top:36%"><span>▣</span><div><b>${st.subjects}</b><span>Subjects</span></div></div>
+          <div class="float-stat" style="top:56%"><span>▤</span><div><b>${st.units}</b><span>Units</span></div></div>
+          <div class="float-stat" style="top:76%"><span>👤</span><div><b>${new Set(Store.lessons.map((l)=>l.teacher_name).filter(Boolean)).size}</b><span>Expert teachers</span></div></div>
         </div>
       </section>
       <div class="grid g4">
-        <div class="card"><div class="stat">${st.lessons}</div><div class="muted">Lessons</div></div>
-        <div class="card"><div class="stat">${st.videos}</div><div class="muted">Videos</div></div>
-        <div class="card"><div class="stat">${st.units}</div><div class="muted">Units</div></div>
-        <div class="card"><div class="stat">${st.subjects}</div><div class="muted">Subjects</div></div>
+        <div class="stat-card"><div class="stat">${st.videos}+</div><div class="muted">Video lessons</div></div>
+        <div class="stat-card"><div class="stat">${st.subjects}</div><div class="muted">Subjects</div></div>
+        <div class="stat-card"><div class="stat">${st.units}</div><div class="muted">Units</div></div>
+        <div class="stat-card"><div class="stat">${new Set(Store.lessons.map((l)=>l.teacher_name).filter(Boolean)).size}</div><div class="muted">Expert teachers</div></div>
       </div>
-      <h2 style="margin-top:32px">Subjects</h2>
+      <div class="battle"><h2>Choose your battlefield</h2><p>Five subjects. Every unit. Structured like the real syllabus.</p></div>
+      <h2 style="margin-top:8px">Subjects</h2>
       <div class="grid g3">${Store.subjects.map(subjectCard).join('')}</div>
       <h2>Latest videos</h2>
       <div class="grid g3">${Store.lessons.filter((l) => l.youtube_id).slice(0, 6).map((l) =>
@@ -441,6 +446,52 @@
     };
   }
 
+  function viewVideos() {
+    const vids = Store.lessons.filter((l) => l.youtube_id);
+    app.innerHTML = `<h1>Videos</h1>
+      <input class="search" id="vq" placeholder="Search videos…" />
+      <div class="grid g3" id="vg">${vids.slice(0, 24).map(videoCard).join('')}</div>`;
+    $('#vq').oninput = () => {
+      const q = $('#vq').value.toLowerCase();
+      const list = vids.filter((l) => (l.title + l.teacher_name).toLowerCase().includes(q)).slice(0, 36);
+      $('#vg').innerHTML = list.map(videoCard).join('');
+    };
+  }
+  function videoCard(l) {
+    return `<a class="card" href="#/lesson/${l.id}">
+      <img alt="" src="https://i.ytimg.com/vi/${esc(l.youtube_id)}/mqdefault.jpg" style="border-radius:12px;margin-bottom:8px;aspect-ratio:16/9;object-fit:cover;width:100%" />
+      <strong>${esc(l.title)}</strong><p class="muted">${esc(l.teacher_name || l.unit_name)}</p></a>`;
+  }
+  function viewZscore() {
+    app.innerHTML = `<h1>Z-Score</h1>
+      <p class="muted">Estimate your subject Z from your mark, island mean and SD. Official Z comes from the Department of Examinations.</p>
+      <form id="zf" class="card" style="max-width:480px">
+        <label class="field">Your mark (X)<input name="x" type="number" step="0.01" required></label>
+        <label class="field">Island mean (μ)<input name="m" type="number" step="0.01" required></label>
+        <label class="field">Standard deviation (σ)<input name="s" type="number" step="0.01" required></label>
+        <button class="btn" type="submit">Calculate</button>
+        <p id="zr" class="stat" style="margin-top:12px"></p>
+      </form>`;
+    $('#zf').onsubmit = (e) => {
+      e.preventDefault();
+      const fd = Object.fromEntries(new FormData(e.target));
+      const s = Number(fd.s);
+      if (!s) { $('#zr').textContent = 'σ must not be 0'; return; }
+      const z = (Number(fd.x) - Number(fd.m)) / s;
+      $('#zr').textContent = 'Z = ' + z.toFixed(4);
+    };
+  }
+  function viewSearch() {
+    app.innerHTML = `<h1>Search</h1>
+      <input class="search" id="q" placeholder="Lessons, units, teachers…" autofocus />
+      <div id="sr" style="margin-top:16px"></div>`;
+    $('#q').oninput = () => {
+      const r = Store.search($('#q').value);
+      $('#sr').innerHTML = `<div class="card">${r.lessons.map((l) =>
+        `<div class="lesson"><a href="#/lesson/${l.id}">${esc(l.title)}</a><span class="muted">${esc(l.teacher_name)}</span></div>`
+      ).join('') || '<p class="muted">Type at least 2 letters.</p>'}</div>`;
+    };
+  }
   function viewBoard() {
     const rows = Store.board();
     app.innerHTML = `<h1>🏆 Leaderboard</h1>
@@ -462,7 +513,7 @@
     $('#sf').onsubmit = async (e) => {
       e.preventDefault();
       await Store.setSettings(Object.fromEntries(new FormData(e.target)));
-      toast('Saved'); tickCountdown();
+      toast('Saved');
     };
   }
 
@@ -545,6 +596,9 @@
     if (a === 'resources') return viewResources();
     if (a === 'tutors') return viewTutors();
     if (a === 'planner') return viewPlanner();
+    if (a === 'videos') return viewVideos();
+    if (a === 'zscore') return viewZscore();
+    if (a === 'search') return viewSearch();
     if (a === 'exam') return viewExam();
     if (a === 'board') return viewBoard();
     if (a === 'settings') return viewSettings();

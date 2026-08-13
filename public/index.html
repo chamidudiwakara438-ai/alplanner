@@ -3,14 +3,14 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#0284c7" />
-  <meta name="description" content="AL Planner — Sri Lankan G.C.E. A/L learning platform. Chemistry, Combined Mathematics, Biology, Physics and ICT. Videos, labs, practicals, planner." />
-  <title>AL Planner</title>
-  <link rel="icon" href="/assets/icon.svg" type="image/svg+xml" />
+  <meta name="theme-color" content="#2563eb" />
+  <meta name="description" content="AL Planner — Sri Lanka's Smart A/L & O/L Learning Platform. Plan Today, Achieve Tomorrow." />
+  <title>AL Planner — Plan. Learn. Achieve</title>
+  <link rel="icon" href="/assets/logo.svg" type="image/svg+xml" />
   <link rel="manifest" href="/manifest.json" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Sinhala:wght@400;600;700&family=Noto+Sans+Tamil:wght@400;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Sinhala:wght@400;600;700&family=Noto+Sans+Tamil:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/css/style.css" />
 </head>
 <body>
@@ -23,14 +23,21 @@
 
   <header class="topbar">
     <a class="brand" href="#/">
-      <img src="/assets/icon.svg" alt="" width="32" height="32" />
-      <span>AL Planner</span>
-      <em class="tagline" data-i="tagline">A/L study OS</em>
+      <img src="/assets/logo.svg" alt="" width="40" height="40" />
+      <span class="brand-txt">
+        <b>AL PLANNER</b>
+        <small>Plan · Learn · Achieve</small>
+      </span>
     </a>
     <nav class="nav-main" id="nav-main"></nav>
     <div class="top-actions">
-      <span class="cd-pill" id="nav-countdown" hidden></span>
-      <button class="lang-btn" id="lang-btn" type="button" title="Language">EN</button>
+      <span class="greet" id="greet"></span>
+      <span class="clock-pill" id="clock"></span>
+      <div class="lang-pills" id="lang-pills">
+        <button type="button" data-lang="en">EN</button>
+        <button type="button" data-lang="si">සිං</button>
+        <button type="button" data-lang="ta">த</button>
+      </div>
       <div id="auth-slot"></div>
     </div>
   </header>
@@ -41,25 +48,25 @@
     <div class="foot-grid">
       <div>
         <strong>AL Planner</strong>
-        <p data-i="foot.about">Sri Lankan G.C.E. A/L learning — videos, labs, practicals and a full admin room. Runs entirely in your browser (Netlify-ready).</p>
-        <span class="ver-pill">v2026.08.13w · Netlify</span>
-        <span class="ver-pill" id="cloud-pill" style="background:#64748b;margin-left:6px">Local</span>
+        <p data-i="foot.about">Sri Lanka's Smart A/L &amp; O/L Learning Platform — videos, labs, practicals and a study planner.</p>
+        <span class="ver-pill" id="cloud-pill">Checking save…</span>
         <button class="install-btn" id="install-btn" type="button" hidden>📲 Install app</button>
       </div>
       <div>
         <h4 data-i="foot.quick">Quick links</h4>
-        <a href="#/premium" data-i="nav.premium">Premium / payments</a>
-        <a href="#/" id="foot-ai" data-i="foot.ai">AI assistant</a>
-        <a href="#/" id="foot-install" data-i="foot.mobile">Mobile app</a>
-        <a href="#/lab" data-i="nav.lab">Virtual lab</a>
+        <a href="#/premium">Premium</a>
+        <a href="#/" id="foot-ai">Quantum AI</a>
+        <a href="#/" id="foot-install">Mobile app</a>
+        <a href="#/lab">AL Lab</a>
+        <a href="#/zscore">Z-Score</a>
       </div>
     </div>
-    <p class="copy">© 2026 AL Planner · NIE A/L syllabus</p>
+    <p class="copy">© 2026 AL Planner · Plan · Learn · Achieve</p>
   </footer>
 
   <nav class="tabbar" id="tabbar"></nav>
 
-  <button class="ai-fab" id="ai-fab" type="button" title="Quantum AI">⚛️</button>
+  <button class="ai-fab" id="ai-fab" type="button" title="Quantum AI">⚛️ Quantum AI</button>
   <div class="ai-sheet" id="ai-sheet" hidden>
     <header>
       <strong>⚛️ Quantum AI</strong>
