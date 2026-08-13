@@ -37,8 +37,8 @@
   }
   function authSlot() {
     const u = Store.user;
-    if (u) return `<span class="muted">${esc(u.name.split(' ')[0])}</span> <button class="ghost" id="btn-out">Sign out</button>`;
-    return `<a class="ghost" href="#/login">Sign in</a>`;
+    if (u) return `<span class="muted">${esc(u.name.split(' ')[0])}</span> <button class="ghost sign-pill" id="btn-out">Sign out</button>`;
+    return `<a class="ghost sign-pill" href="#/login">Sign in</a>`;
   }
   function tabbar() {
     const u = Store.user;
