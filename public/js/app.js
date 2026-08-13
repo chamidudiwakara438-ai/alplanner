@@ -683,13 +683,8 @@
       e.preventDefault();
       const fd = Object.fromEntries(new FormData(e.target));
       try {
-        if (Store.api) await Store._api ? null : fetch('/api/contact', { method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(fd) });
-        else {
-          const ls = JSON.parse(localStorage.getItem('alplanner-v1') || '{}');
-          ls.messages = ls.messages || [];
-          ls.messages.push(Object.assign({ at: new Date().toISOString() }, fd));
-          localStorage.setItem('alplanner-v1', JSON.stringify(ls));
-        }
+        const r = await fetch('/api/contact', { method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(fd) });
+        if (!r.ok) throw new Error('Could not send');
         toast('Message sent');
         e.target.reset();
       } catch (err) { $('#cerr').textContent = err.message || 'Could not send'; }
