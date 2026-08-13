@@ -244,25 +244,30 @@
     };
   }
 
+  function ytPlayer(id, title) {
+    const watch = 'https://www.youtube.com/watch?v=' + encodeURIComponent(id);
+    return `<div class="yt-box">
+      <iframe class="yt" src="https://www.youtube.com/embed/${esc(id)}?rel=0&modestbranding=1&playsinline=1" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+      <a class="btn yt-open" href="${watch}" target="_blank" rel="noopener">▶ YouTube එකේ play කරන්න — Sign up ඕන නැහැ</a>
+    </div>`;
+  }
   function viewLesson(id) {
     const l = Store.lessonById(id);
     if (!l) return viewNotFound();
     const st = Store.stateOf(l.id);
     const sub = Store.subjectById(l.subject_id);
     const rel = Store.related(l);
-    const embed = l.youtube_id
-      ? `<iframe class="yt" src="https://www.youtube.com/embed/${esc(l.youtube_id)}?rel=0" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>`
-      : `<div class="card">No video attached yet — read the notes below.</div>`;
+    const embed = l.youtube_id ? ytPlayer(l.youtube_id, l.title) : `<div class="card">No video attached yet — read the notes below.</div>`;
     app.innerHTML = `<p><a href="#/subject/${l.subject_id}">← ${esc(sub ? sub.name : 'Subject')}</a> · ${esc(l.unit_name)}</p>
       <h1>${esc(l.title)}</h1>
       <p class="muted">${esc(l.teacher_name)} ${l.description ? '· ' + esc(l.description) : ''}</p>
       ${embed}
-      <div class="row" style="margin:14px 0">
+      ${Store.user ? `<div class="row" style="margin:14px 0">
         <button class="ghost" data-f="watched">${t('lesson.watch')}${st.watched ? ' ✓' : ''}</button>
         <button class="ghost" data-f="completed">${t('lesson.done')}${st.completed ? ' ✓' : ''}</button>
         <button class="ghost" data-f="favourite">${t('lesson.fav')}${st.favourite ? ' ★' : ''}</button>
         <button class="btn" id="add-plan">+ Planner</button>
-      </div>
+      </div>` : '<p class="muted">Video එක free. Progress save කරන්න විතරයි Sign in ඕනේ.</p>'}
       ${l.notes ? `<div class="card note">${esc(l.notes)}</div>` : ''}
       <h3>Related labs</h3>
       <div class="row">${Store.sims.filter((s) => {
@@ -274,14 +279,15 @@
     app.querySelectorAll('[data-f]').forEach((b) => {
       b.onclick = async () => {
         try { await Store.toggle(l.id, b.getAttribute('data-f')); viewLesson(id); }
-        catch (e) { toast('Sign in only if you want to save progress'); }
+        catch (e) { toast(e.message); }
       };
     });
-    $('#add-plan').onclick = async () => {
+    const ap = $('#add-plan');
+    if (ap) ap.onclick = async () => {
       try {
         await Store.addPlan(l.id, new Date().toISOString().slice(0, 10));
         toast('Added to today\'s plan');
-      } catch (e) { toast('Sign in to use the planner'); }
+      } catch (e) { toast(e.message); }
     };
   }
 
@@ -544,7 +550,7 @@
       <div class="grid g3" id="vg">${vids.slice(0, 24).map(videoCard).join('')}</div>`;
     const play = (l) => {
       $('#vplay').innerHTML = `<div class="card" style="margin:14px 0">
-        <iframe class="yt" src="https://www.youtube.com/embed/${esc(l.youtube_id)}?rel=0&autoplay=1" allowfullscreen allow="autoplay; encrypted-media; picture-in-picture"></iframe>
+        ${ytPlayer(l.youtube_id, l.title)}
         <h3>${esc(l.title)}</h3><p class="muted">${esc(l.teacher_name || '')}</p>
       </div>`;
       window.scrollTo({ top: 0, behavior: 'smooth' });

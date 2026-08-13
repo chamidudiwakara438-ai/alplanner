@@ -86,6 +86,8 @@ code{background:#eef6fc;padding:.1em .35em;border-radius:6px;font-size:.9em}
 .unit{margin:14px 0}
 .lesson{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px;border-radius:14px;background:#fff;border:1px solid var(--line);margin:8px 0}
 .yt{width:100%;aspect-ratio:16/9;border:0;border-radius:16px;background:#000}
+.yt-box{display:flex;flex-direction:column;gap:10px;margin:8px 0 16px}
+.yt-open{align-self:flex-start}
 .search{width:100%;border:1px solid var(--line);border-radius:14px;padding:12px 14px;background:#fff;font-size:16px}
 .table{width:100%;border-collapse:collapse;font-size:14px}
 .table th,.table td{text-align:left;padding:8px;border-bottom:1px solid var(--line)}
