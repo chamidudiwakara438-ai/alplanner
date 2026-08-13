@@ -233,6 +233,133 @@ window.Sims = {
         if (vol >= 24.5 && vol < 25.2) done = true;
         ctx.fillText('V = ' + vol.toFixed(2) + ' cm³   ' + msg, 20, 340);
       });
+    } else if (type === 'freefall') {
+      const g = add('g', 1.6, 24.8, 9.8, 0.1);
+      let y = 20, v = 0, t0 = 0;
+      loop(() => {
+        v += +g.value * 0.04; y += v * 0.04; t0 += 0.04;
+        if (y > 300) { y = 20; v = 0; t0 = 0; }
+        bg();
+        ctx.fillStyle = '#38bdf8'; ctx.beginPath(); ctx.arc(360, y, 14, 0, 6.28); ctx.fill();
+        ctx.fillStyle = '#e2e8f0'; ctx.font = '16px Outfit,sans-serif';
+        ctx.fillText('s = ½gt²   t=' + t0.toFixed(2) + 's   v=' + v.toFixed(1) + ' m/s', 20, 340);
+      });
+    } else if (type === 'rescolor') {
+      const cols = ['#000','#7c2d12','#dc2626','#ea580c','#eab308','#22c55e','#2563eb','#7c3aed','#64748b','#f8fafc'];
+      const d1 = add('d1', 0, 9, 1, 1), d2 = add('d2', 0, 9, 0, 1), mult = add('mult', 0, 6, 2, 1);
+      loop(() => {
+        bg();
+        ctx.fillStyle = '#fde68a'; ctx.fillRect(200, 140, 320, 70);
+        [cols[+d1.value], cols[+d2.value], cols[+mult.value], '#ca8a04'].forEach((c, i) => {
+          ctx.fillStyle = c; ctx.fillRect(240 + i * 60, 140, 18, 70);
+        });
+        const ohm = ( +d1.value * 10 + +d2.value) * (10 ** +mult.value);
+        ctx.fillStyle = '#e2e8f0'; ctx.font = '16px Outfit,sans-serif';
+        ctx.fillText('R = ' + ohm + ' Ω  (±5%)', 20, 340);
+      });
+    } else if (type === 'reflect') {
+      const ang = add('i (°)', 10, 80, 35, 1);
+      loop(() => {
+        bg();
+        ctx.strokeStyle = '#64748b'; ctx.beginPath(); ctx.moveTo(80, 200); ctx.lineTo(640, 200); ctx.moveTo(360, 40); ctx.lineTo(360, 320); ctx.stroke();
+        const th = +ang.value * Math.PI / 180;
+        ctx.strokeStyle = '#fbbf24'; ctx.lineWidth = 2; ctx.beginPath();
+        ctx.moveTo(360 - Math.sin(th) * 220, 200 - Math.cos(th) * 160);
+        ctx.lineTo(360, 200);
+        ctx.lineTo(360 + Math.sin(th) * 220, 200 - Math.cos(th) * 160);
+        ctx.stroke();
+        ctx.fillStyle = '#e2e8f0'; ctx.font = '16px Outfit,sans-serif';
+        ctx.fillText('i = r = ' + ang.value + '°', 20, 340);
+      });
+    } else if (type === 'trig') {
+      const deg = add('θ', 0, 360, 40, 1);
+      loop(() => {
+        bg();
+        const th = +deg.value * Math.PI / 180;
+        ctx.strokeStyle = '#334155'; ctx.beginPath(); ctx.arc(360, 180, 120, 0, 6.28); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(200, 180); ctx.lineTo(520, 180); ctx.moveTo(360, 40); ctx.lineTo(360, 320); ctx.stroke();
+        const x = 360 + 120 * Math.cos(th), y = 180 - 120 * Math.sin(th);
+        ctx.strokeStyle = '#38bdf8'; ctx.beginPath(); ctx.moveTo(360, 180); ctx.lineTo(x, y); ctx.stroke();
+        ctx.fillStyle = '#f472b6'; ctx.beginPath(); ctx.arc(x, y, 6, 0, 6.28); ctx.fill();
+        ctx.fillStyle = '#e2e8f0'; ctx.font = '15px Outfit,sans-serif';
+        ctx.fillText('sin=' + Math.sin(th).toFixed(3) + '  cos=' + Math.cos(th).toFixed(3) + '  tan=' + Math.tan(th).toFixed(2), 20, 340);
+      });
+    } else if (type === 'deriv') {
+      const x0 = add('x', -2, 2, 0.8, 0.05);
+      loop(() => {
+        bg();
+        ctx.strokeStyle = '#334155'; ctx.beginPath(); ctx.moveTo(0, 300); ctx.lineTo(720, 300); ctx.moveTo(360, 0); ctx.lineTo(360, 360); ctx.stroke();
+        ctx.strokeStyle = '#38bdf8'; ctx.beginPath();
+        for (let px = 0; px < 720; px++) {
+          const x = (px - 360) / 80;
+          const py = 300 - (x * x) * 50;
+          if (px === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        }
+        ctx.stroke();
+        const x = +x0.value, m = 2 * x;
+        ctx.strokeStyle = '#f472b6'; ctx.beginPath();
+        ctx.moveTo(0, 300 - ((-360 / 80) * m + (x * x - m * x)) * 50);
+        ctx.lineTo(720, 300 - ((360 / 80) * m + (x * x - m * x)) * 50);
+        ctx.stroke();
+        ctx.fillStyle = '#e2e8f0'; ctx.font = '16px Outfit,sans-serif';
+        ctx.fillText('y=x²   dy/dx = 2x = ' + m.toFixed(2) + ' at x=' + x.toFixed(2), 20, 340);
+      });
+    } else if (type === 'vector') {
+      const ax = add('Ax', -8, 8, 4, 0.5), ay = add('Ay', -8, 8, 2, 0.5);
+      const bx = add('Bx', -8, 8, -1, 0.5), by = add('By', -8, 8, 3, 0.5);
+      loop(() => {
+        bg();
+        const o = [360, 200], sc = 22;
+        const drawV = (x, y, col) => {
+          ctx.strokeStyle = col; ctx.lineWidth = 3; ctx.beginPath();
+          ctx.moveTo(o[0], o[1]); ctx.lineTo(o[0] + x * sc, o[1] - y * sc); ctx.stroke();
+        };
+        drawV(+ax.value, +ay.value, '#38bdf8');
+        drawV(+bx.value, +by.value, '#fbbf24');
+        drawV(+ax.value + +bx.value, +ay.value + +by.value, '#34d399');
+        ctx.fillStyle = '#e2e8f0'; ctx.font = '15px Outfit,sans-serif';
+        const rx = +ax.value + +bx.value, ry = +ay.value + +by.value;
+        ctx.fillText('R = (' + rx + ', ' + ry + ')   |R|=' + Math.hypot(rx, ry).toFixed(2), 20, 340);
+      });
+    } else if (type === 'logic') {
+      const A = add('A', 0, 1, 1, 1), B = add('B', 0, 1, 0, 1);
+      loop(() => {
+        bg();
+        const a = +A.value, b = +B.value;
+        const rows = [['AND', a && b], ['OR', a || b], ['XOR', a !== b], ['NAND', !(a && b)], ['NOR', !(a || b)], ['NOT A', !a]];
+        rows.forEach((r, i) => {
+          ctx.fillStyle = r[1] ? '#22c55e' : '#1e293b';
+          ctx.fillRect(80, 30 + i * 48, 560, 40);
+          ctx.fillStyle = '#fff'; ctx.font = '18px Outfit,sans-serif';
+          ctx.fillText(r[0] + '  →  ' + (r[1] ? '1' : '0'), 100, 56 + i * 48);
+        });
+      });
+    } else if (type === 'enzyme') {
+      const T = add('T (°C)', 0, 80, 37, 1);
+      loop(() => {
+        bg();
+        ctx.strokeStyle = '#38bdf8'; ctx.beginPath();
+        for (let t = 0; t <= 80; t++) {
+          const rate = t < 40 ? t / 40 : Math.max(0, 1 - (t - 40) / 25);
+          const px = 40 + t * 8, py = 300 - rate * 220;
+          if (t === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        }
+        ctx.stroke();
+        const r = +T.value < 40 ? +T.value / 40 : Math.max(0, 1 - (+T.value - 40) / 25);
+        ctx.fillStyle = '#f472b6'; ctx.beginPath(); ctx.arc(40 + +T.value * 8, 300 - r * 220, 7, 0, 6.28); ctx.fill();
+        ctx.fillStyle = '#e2e8f0'; ctx.font = '15px Outfit,sans-serif';
+        ctx.fillText('Optimum ~37–40 °C. Past that the enzyme DENATURES.', 20, 340);
+      });
+    } else if (type === 'equil') {
+      const heat = add('heat', 0, 1, 0.3, 0.05);
+      loop(() => {
+        const hot = +heat.value;
+        bg();
+        ctx.fillStyle = 'rgb(' + Math.round(80 + hot * 140) + ',40,' + Math.round(160 - hot * 40) + ')';
+        ctx.fillRect(220, 60, 280, 220);
+        ctx.fillStyle = '#e2e8f0'; ctx.font = '16px Outfit,sans-serif';
+        ctx.fillText(hot > 0.5 ? 'Brown NO₂ favoured (endothermic way)' : 'Colourless N₂O₄ favoured (exothermic way)', 20, 340);
+      });
     } else {
       bg();
       ctx.fillStyle = '#e2e8f0'; ctx.font = '18px Outfit,sans-serif';

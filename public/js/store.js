@@ -69,6 +69,15 @@
     { type: 'binary', subject: 'ict', title: 'Binary workshop', descr: 'Convert bits ↔ decimal live.', xp: 10 },
     { type: 'waves', subject: 'phys', title: 'Transverse wave', descr: 'Change f and A. v = fλ.', xp: 12 },
     { type: 'springshm', subject: 'phys', title: 'Spring SHM', descr: 'Mass-spring. T = 2π√(m/k).', xp: 14 },
+    { type: 'freefall', subject: 'phys', title: 'Free fall', descr: 'Drop a ball. s = ½gt².', xp: 10 },
+    { type: 'rescolor', subject: 'phys', title: 'Resistor colour code', descr: 'Read the four bands.', xp: 10 },
+    { type: 'reflect', subject: 'phys', title: 'Plane mirror', descr: 'i = r. Drag the ray.', xp: 10 },
+    { type: 'trig', subject: 'maths', title: 'Unit circle', descr: 'sin, cos, tan of a live angle.', xp: 12 },
+    { type: 'deriv', subject: 'maths', title: 'Derivative explorer', descr: 'Tangent on y = x².', xp: 14 },
+    { type: 'vector', subject: 'maths', title: 'Vector playground', descr: 'Add two arrows. See the resultant.', xp: 12 },
+    { type: 'logic', subject: 'ict', title: 'Logic gates', descr: 'AND / OR / XOR / NOT live.', xp: 12 },
+    { type: 'enzyme', subject: 'bio', title: 'Enzyme rate', descr: 'Temperature vs rate curve.', xp: 12 },
+    { type: 'equil', subject: 'chem', title: 'Le Chatelier tube', descr: 'Heat the NO₂ ⇌ N₂O₄ mix.', xp: 14 },
   ];
 
   function loadLS() {
@@ -224,6 +233,9 @@
     S.units = buildUnits();
     S.lessons = buildLessons(S.units, vids);
     S.kb = kb;
+    if (window.CONTENT && CONTENT.extraPracticals) {
+      S.practicals = PRACTICALS.concat(CONTENT.extraPracticals);
+    }
     if (cloudOn()) {
       S.cloud = true;
       try {
@@ -540,6 +552,65 @@
       if (u) u.premium_until = new Date(Date.now() + 31 * 864e5).toISOString().slice(0, 10);
     }
     saveLS(ls);
+  };
+
+  S.examHistory = function () {
+    if (!S.user) return [];
+    return (loadLS().exams || []).filter((e) => String(e.uid) === String(S.user.id));
+  };
+  S.saveExam = async function (row) {
+    if (!S.user) throw new Error('Please sign in');
+    const rec = Object.assign({ uid: S.user.id, at: new Date().toISOString() }, row);
+    const ls = loadLS();
+    ls.exams = ls.exams || [];
+    ls.exams.push(rec);
+    saveLS(ls);
+    return rec;
+  };
+  S.xp = function () {
+    if (!S.user) return { total: 0, by: {}, badges: [], exams: 0, done: 0, watch: 0 };
+    const prog = S.prog();
+    const keys = Object.keys(prog).filter((k) => k.startsWith(S.user.id + ':'));
+    const done = keys.filter((k) => prog[k].completed).length;
+    const watch = keys.filter((k) => prog[k].watched).length;
+    const exams = S.examHistory();
+    const examPts = exams.reduce((a, e) => a + (e.score || 0) * 2, 0);
+    const by = { lessons: done * 20, videos: watch * 5, exams: examPts };
+    const total = Object.values(by).reduce((a, b) => a + b, 0);
+    const badges = [
+      { id: 'first', ic: '🎬', name: 'First lesson', ok: done >= 1 },
+      { id: 'ten', ic: '📚', name: '10 lessons', ok: done >= 10 },
+      { id: 'quiz', ic: '🎯', name: 'First exam', ok: exams.length >= 1 },
+      { id: 'ace', ic: '🏆', name: '80%+ exam', ok: exams.some((e) => e.total && e.score / e.total >= 0.8) },
+      { id: 'lab', ic: '🧪', name: 'Lab explorer', ok: watch + done >= 5 },
+    ];
+    return { total, by, badges, exams: exams.length, done, watch };
+  };
+  S.weekPlan = function (weakSid) {
+    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const pool = S.lessons.filter((l) => !weakSid || l.subject_id === +weakSid);
+    const extra = S.lessons.filter((l) => weakSid && l.subject_id !== +weakSid);
+    return days.map((d, i) => ({
+      day: d,
+      items: [
+        pool.length ? { title: pool[i % pool.length].title, href: '#/lesson/' + pool[i % pool.length].id, kind: 'Lesson' } : null,
+        i === 3 ? { title: 'Virtual lab day', href: '#/lab', kind: 'Lab' } : null,
+        i === 5 ? { title: 'Timed past-paper (Exam mode)', href: '#/exam', kind: 'Exam' } : null,
+        i === 6 ? { title: 'Quantum AI doubt clearing', href: '#/', kind: 'AI' } : null,
+        extra.length && i % 2 === 0 ? { title: extra[i % extra.length].title, href: '#/lesson/' + extra[i % extra.length].id, kind: 'Balance' } : null,
+      ].filter(Boolean),
+    }));
+  };
+  S.board = function () {
+    const users = S.cloud ? (S._cache.users || []) : (loadLS().users || []).map(publicUser);
+    const exams = loadLS().exams || [];
+    const prog = S.prog();
+    return users.filter((u) => u && u.role !== 'admin').map((u) => {
+      const done = Object.keys(prog).filter((k) => k.startsWith(u.id + ':') && prog[k].completed).length;
+      const mine = exams.filter((e) => String(e.uid) === String(u.id));
+      const pts = done * 20 + mine.reduce((a, e) => a + (e.score || 0) * 2, 0);
+      return { name: (u.name || 'Student').split(' ')[0], school: u.school || '', pts, done, me: S.user && String(u.id) === String(S.user.id) };
+    }).sort((a, b) => b.pts - a.pts).slice(0, 20);
   };
 
   window.Store = S;

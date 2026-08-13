@@ -98,4 +98,13 @@ code{background:#eef6fc;padding:.1em .35em;border-radius:6px;font-size:.9em}
   .tagline{display:none}
   .ai-fab{bottom:92px}
 }
+.strip{display:flex;gap:12px;overflow:auto;padding-bottom:8px;scroll-snap-type:x mandatory}
+.strip-card{min-width:220px;max-width:220px;scroll-snap-align:start;padding:10px}
+.strip-card img{border-radius:10px;margin-bottom:8px;aspect-ratio:16/9;object-fit:cover;background:#0f172a}
+.chip-static{background:#fff;border:1px solid var(--line);padding:8px 12px;border-radius:999px;font-weight:700;font-size:13px}
+.chip-static.dim{opacity:.4}
+.week{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-top:12px}
+.q{border:0;margin:0 0 14px;padding:0}
+.q label{display:block;padding:6px 0}
+.table tr.me{background:#e0f2fe;font-weight:700}
 @media (prefers-reduced-motion:reduce){.blob,.card.tilt,.hero-art{transition:none!important}}

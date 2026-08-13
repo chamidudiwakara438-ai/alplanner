@@ -1,6 +1,6 @@
 /* AL Planner service worker — caches the app shell. APIs are local. */
 const CACHE = 'alplanner-shell-2026-08-13w';
-const SHELL = ['/', '/index.html', '/css/style.css', '/js/i18n.js', '/js/store.js', '/js/sims.js', '/js/app.js', '/manifest.json', '/assets/icon.svg'];
+const SHELL = ['/', '/index.html', '/css/style.css', '/js/i18n.js', '/js/content.js', '/js/store.js', '/js/sims.js', '/js/app.js', '/js/firebase-config.js', '/manifest.json', '/assets/icon.svg'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));

@@ -29,6 +29,7 @@
       ['/', 'nav.home'], ['/subjects', 'nav.subjects'], ['/lab', 'nav.lab'],
       ['/practicals', 'nav.practicals'], ['/resources', 'nav.resources'],
       ['/tutors', 'nav.tutors'], ['/planner', 'nav.planner'],
+      ['/exam', 'nav.exam'], ['/board', 'nav.board'],
     ];
     if (u) items.push(['/dashboard', 'nav.dashboard']);
     if (u && u.role === 'admin') items.push(['/admin', 'nav.admin']);
@@ -41,7 +42,7 @@
   }
   function tabbar() {
     const u = Store.user;
-    const items = [['/', '🏠', 'nav.home'], ['/subjects', '📚', 'nav.subjects'], ['/lab', '🧪', 'nav.lab'], ['/planner', '🗓️', 'nav.planner']];
+    const items = [['/', '🏠', 'nav.home'], ['/subjects', '📚', 'nav.subjects'], ['/lab', '🧪', 'nav.lab'], ['/exam', '🎯', 'nav.exam']];
     items.push([u ? '/dashboard' : '/login', '👤', u ? 'nav.dashboard' : 'nav.login']);
     return items.map(([h, ic, k]) => `<a href="#${h}">${ic}<br>${t(k)}</a>`).join('');
   }
@@ -175,6 +176,11 @@
         <button class="btn" id="add-plan">+ Planner</button>
       </div>
       ${l.notes ? `<div class="card note">${esc(l.notes)}</div>` : ''}
+      <h3>Related labs</h3>
+      <div class="row">${Store.sims.filter((s) => {
+        const map = { 1: 'chem', 2: 'maths', 3: 'bio', 4: 'phys', 5: 'ict' };
+        return s.subject === map[l.subject_id];
+      }).slice(0, 4).map((s) => `<a class="ghost" href="#/sim/${s.type}">${esc(s.title)}</a>`).join('')}</div>
       <h3>Related</h3>
       <div class="grid g3">${rel.map((x) => `<a class="card" href="#/lesson/${x.id}">${esc(x.title)}</a>`).join('')}</div>`;
     app.querySelectorAll('[data-f]').forEach((b) => {
@@ -227,14 +233,19 @@
     if (!Store.user) return go('/login');
     const d = Store.dash();
     const st = Store.settings();
-    const left = Math.max(0, Math.ceil((new Date(st.exam_date + 'T00:00:00') - Date.now()) / 864e5));
+    const xp = Store.xp();
+    const leftMs = new Date(st.exam_date + 'T00:00:00') - Date.now();
+    const left = Math.max(0, Math.ceil(leftMs / 864e5));
     app.innerHTML = `<h1>${t('dash.hi')}, ${esc(Store.user.name.split(' ')[0])}</h1>
       <p class="muted">${Store.user.school || ''} · ${Store.user.al_year || ''} · ${Store.user.district || ''}</p>
-      <div class="grid g3">
-        <div class="card"><div class="stat">${left}</div><div class="muted">${t('dash.left')}</div></div>
+      <div class="grid g4">
+        <div class="card"><div class="stat" id="live-cd">${left}d</div><div class="muted">${t('dash.left')}</div></div>
         <div class="card"><div class="stat">${d.completed.length}</div><div class="muted">${t('dash.done')}</div></div>
+        <div class="card"><div class="stat">${xp.total}</div><div class="muted">XP</div></div>
         <div class="card"><div class="stat">${d.favourites.length}</div><div class="muted">Favourites</div></div>
       </div>
+      <h3>Badges</h3>
+      <div class="row">${xp.badges.map((b) => `<span class="chip-static ${b.ok ? '' : 'dim'}">${b.ic} ${esc(b.name)}</span>`).join('')}</div>
       <h3>Progress</h3>
       ${d.subjects.map((s) => {
         const pct = s.total ? Math.round(100 * s.completed / s.total) : 0;
@@ -243,7 +254,19 @@
       }).join('')}
       <h3>Continue</h3>
       <div class="grid g2">${d.watched.slice(0, 4).map((l) => `<a class="card" href="#/lesson/${l.id}">${esc(l.title)}</a>`).join('') || '<p class="muted">Watch a lesson to see it here.</p>'}</div>
-      <p><a class="ghost" href="#/settings">Exam date & goals</a> · <a class="ghost" href="#/premium">${t('nav.premium')}</a></p>`;
+      <p><a class="ghost" href="#/settings">Exam date & goals</a> · <a class="ghost" href="#/exam">Exam mode</a> · <a class="ghost" href="#/premium">${t('nav.premium')}</a></p>`;
+    const cd = $('#live-cd');
+    if (cd && leftMs > 0) {
+      const tick = () => {
+        const ms = new Date(st.exam_date + 'T00:00:00') - Date.now();
+        if (ms <= 0) { cd.textContent = 'Go shine!'; return; }
+        const d0 = Math.floor(ms / 864e5), h = Math.floor((ms % 864e5) / 36e5), m = Math.floor((ms % 36e5) / 6e4), s = Math.floor((ms % 6e4) / 1000);
+        cd.textContent = d0 + 'd ' + h + 'h ' + m + 'm ' + s + 's';
+      };
+      tick();
+      const iv = setInterval(tick, 1000);
+      setTimeout(() => clearInterval(iv), 120000);
+    }
   }
 
   function viewLab() {
@@ -275,10 +298,25 @@
 
   function viewPracticals() {
     app.innerHTML = `<h1 data-i="prac.title">${t('prac.title')}</h1>
-      <div class="grid g2">${Store.practicals.map((p) =>
+      <div class="tabs" id="ptabs">
+        <button data-s="" class="on">All</button>
+        <button data-s="Physics">Physics</button>
+        <button data-s="Chemistry">Chemistry</button>
+        <button data-s="Biology">Biology</button>
+      </div>
+      <div class="grid g2" id="pgrid"></div>`;
+    const draw = (s) => {
+      $('#pgrid').innerHTML = Store.practicals.filter((p) => !s || p.subject === s).map((p) =>
         `<a class="card" href="#/practical/${p.id}"><span class="badge">${esc(p.subject)}</span>
           <h3>${esc(p.en)}</h3><p class="muted">${esc(p.si)} · ${esc(p.category)}</p></a>`
-      ).join('')}</div>`;
+      ).join('');
+    };
+    draw('');
+    $('#ptabs').onclick = (e) => {
+      const b = e.target.closest('button'); if (!b) return;
+      $('#ptabs').querySelectorAll('button').forEach((x) => x.classList.toggle('on', x === b));
+      draw(b.getAttribute('data-s'));
+    };
   }
   function viewPractical(id) {
     const p = Store.practicals.find((x) => x.id === +id);
@@ -331,15 +369,85 @@
     const plans = Store.plans();
     const today = new Date().toISOString().slice(0, 10);
     app.innerHTML = `<h1 data-i="nav.planner">${t('nav.planner')}</h1>
-      <p class="muted">Add lessons from any lesson page. Today: ${today}</p>
+      <div class="card">
+        <h3>Smart weekly timetable</h3>
+        <p class="muted">Weak subject gets extra slots + lab + exam + AI day.</p>
+        <div class="row">
+          <select id="weak">${Store.subjects.map((s) => `<option value="${s.id}">${esc(s.name)}</option>`).join('')}</select>
+          <button class="btn" id="gen">Generate week</button>
+          <button class="ghost" id="pr">Print</button>
+        </div>
+        <div id="week"></div>
+      </div>
+      <h3>My list · ${today}</h3>
       ${plans.map((p) => {
         const l = Store.lessonById(p.lesson_id);
         return `<div class="lesson"><div><strong>${esc(l ? l.title : 'Lesson')}</strong><div class="muted">${esc(p.plan_date)}</div></div>
           <div><button class="ghost" data-t="${p.id}">${p.done ? 'Undo' : 'Done'}</button>
           <button class="danger" data-d="${p.id}">✕</button></div></div>`;
-      }).join('') || '<p class="empty">No planned lessons yet.</p>'}`;
+      }).join('') || '<p class="empty">No planned lessons yet. Open a lesson and tap + Planner.</p>'}`;
+    $('#gen').onclick = () => {
+      const slots = Store.weekPlan($('#weak').value);
+      $('#week').innerHTML = `<div class="week">${slots.map((d) =>
+        `<div class="card"><strong>${esc(d.day)}</strong>${d.items.map((it) =>
+          `<div><a href="${it.href}"><span class="badge">${esc(it.kind)}</span> ${esc(it.title)}</a></div>`).join('')}</div>`
+      ).join('')}</div>`;
+    };
+    $('#pr').onclick = () => window.print();
     app.querySelectorAll('[data-t]').forEach((b) => { b.onclick = async () => { await Store.togglePlan(b.getAttribute('data-t')); viewPlanner(); }; });
     app.querySelectorAll('[data-d]').forEach((b) => { b.onclick = async () => { await Store.delPlan(b.getAttribute('data-d')); viewPlanner(); }; });
+  }
+
+  function viewExam() {
+    if (!Store.user) return go('/login');
+    const hist = Store.examHistory();
+    app.innerHTML = `<h1>🎯 Exam mode</h1>
+      <p class="muted">Timed MCQs from the A/L bank. Auto-marked.</p>
+      <form id="ef" class="card row">
+        <select name="subj">
+          <option value="mixed">Mixed</option>
+          <option value="chem">Chemistry</option>
+          <option value="phys">Physics</option>
+          <option value="cm">Combined Maths</option>
+          <option value="bio">Biology</option>
+          <option value="ict">ICT</option>
+        </select>
+        <select name="n"><option>10</option><option>15</option><option>20</option></select>
+        <button class="btn">Start</button>
+      </form>
+      <div id="epaper"></div>
+      <h3>History</h3>
+      ${hist.slice(-8).reverse().map((h) => `<div class="lesson"><span>${esc(h.subj)} · ${h.score}/${h.total}</span><span class="muted">${esc((h.at || '').slice(0, 16))}</span></div>`).join('') || '<p class="muted">No attempts yet.</p>'}`;
+    $('#ef').onsubmit = (e) => {
+      e.preventDefault();
+      const fd = Object.fromEntries(new FormData(e.target));
+      const qs = CONTENT.pickExam(fd.subj, +fd.n);
+      const t0 = Date.now();
+      $('#epaper').innerHTML = `<form id="qz" class="card">${qs.map((q, i) =>
+        `<fieldset class="q"><legend>Q${i + 1}. ${esc(q.q)}</legend>
+          ${q.opts.map((o) => `<label><input type="radio" name="q${i}" value="${o.k}"> ${esc(o.t)}</label>`).join('')}</fieldset>`
+      ).join('')}<button class="btn">Submit</button></form>`;
+      $('#qz').onsubmit = async (ev) => {
+        ev.preventDefault();
+        let score = 0;
+        qs.forEach((q, i) => {
+          const pick = ($('#qz')['q' + i] && $('#qz')['q' + i].value) || '';
+          if (pick === q.ans) score++;
+        });
+        await Store.saveExam({ subj: fd.subj, score, total: qs.length, seconds: Math.round((Date.now() - t0) / 1000) });
+        toast(score + ' / ' + qs.length);
+        viewExam();
+      };
+    };
+  }
+
+  function viewBoard() {
+    const rows = Store.board();
+    app.innerHTML = `<h1>🏆 Leaderboard</h1>
+      <p class="muted">XP from completed lessons + exam scores.</p>
+      <table class="table"><tr><th>#</th><th>Name</th><th>School</th><th>Lessons</th><th>XP</th></tr>
+        ${rows.map((r, i) => `<tr class="${r.me ? 'me' : ''}"><td>${i + 1}</td><td>${esc(r.name)}</td><td>${esc(r.school)}</td><td>${r.done}</td><td>${r.pts}</td></tr>`).join('') || '<tr><td colspan="5">Be the first — complete a lesson or exam.</td></tr>'}
+      </table>`;
   }
 
   function viewSettings() {
@@ -437,6 +545,8 @@
     if (a === 'resources') return viewResources();
     if (a === 'tutors') return viewTutors();
     if (a === 'planner') return viewPlanner();
+    if (a === 'exam') return viewExam();
+    if (a === 'board') return viewBoard();
     if (a === 'settings') return viewSettings();
     if (a === 'premium') return viewPremium();
     if (a === 'admin') return viewAdmin();
