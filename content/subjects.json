@@ -1,0 +1,49 @@
+[
+ {
+  "name": "Physics",
+  "si": "භොතික විද්‍යා",
+  "ta": "இயற்பியல்",
+  "code": "PHY",
+  "icon": "book",
+  "c1": "#f97316",
+  "c2": "#e11d48",
+  "units": [
+   "Measurement",
+   "Mechanics",
+   "Oscillations and Waves",
+   "Thermal Physics",
+   "Gravitational Field",
+   "Electrostatic Field",
+   "Magnetic Field",
+   "Current Electricity",
+   "Electronics",
+   "Mechanical Properties of Matter",
+   "Matter and Radiation"
+  ]
+ },
+ {
+  "name": "ICT",
+  "si": "තොරතුරු හා සන්නිවේදන තාක්ෂණය",
+  "ta": "தகவல் தொழில்நுட்பம்",
+  "code": "ICT",
+  "icon": "cap",
+  "c1": "#06b6d4",
+  "c2": "#3b82f6",
+  "units": [
+   "Concept of ICT",
+   "Introduction to Computer",
+   "Data Representation",
+   "Fundamentals of Digital Circuits",
+   "Computer Operating Systems",
+   "Data Communication and Networking",
+   "System Analysis and Design",
+   "Database Management",
+   "Programming",
+   "Web Development",
+   "Internet of Things",
+   "ICT in Business",
+   "New Trends and Future Directions of ICT",
+   "Project"
+  ]
+ }
+]

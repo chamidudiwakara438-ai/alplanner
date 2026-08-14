@@ -1,0 +1,248 @@
+[
+ {
+  "match": "Atomic Structure & Electronic Configuration",
+  "theory": "ATOMIC STRUCTURE — KEY THEORY\n\nThe atom\n- An atom has a tiny, dense, positively charged nucleus (protons + neutrons) surrounded by electrons in energy levels (shells).\n- Proton: charge +1, mass ~1 u.   Neutron: charge 0, mass ~1 u.   Electron: charge -1, mass ~1/1836 u.\n\nAtomic number and mass number\n- Atomic number (Z) = number of protons = number of electrons in a neutral atom.\n- Mass number (A) = protons + neutrons.\n- Number of neutrons = A - Z.\n\nIsotopes\n- Isotopes are atoms of the same element (same Z) with different numbers of neutrons (different A).\n- They have identical chemical properties (same electron arrangement) but slightly different physical properties.\n- Example: 12C, 13C and 14C are isotopes of carbon.\n\nElectronic configuration\n- Maximum electrons in shell n = 2n^2  (K=2, L=8, M=18).\n- Electrons fill shells from the lowest energy level outwards; the outer shell (valence electrons) controls chemical behaviour.\n\nExam tips\n- Always show working for A - Z calculations.\n- In ions, electrons change but protons stay the same (Z never changes).",
+  "questions": [
+   {
+    "q": "The atomic number of an element is the number of…",
+    "a": "neutrons in the nucleus",
+    "b": "protons in the nucleus",
+    "c": "protons + neutrons",
+    "d": "electrons in the outer shell only",
+    "answer": "b",
+    "explanation": "Atomic number (Z) = number of protons. In a neutral atom it also equals the number of electrons."
+   },
+   {
+    "q": "Isotopes of the same element have the same number of protons but different numbers of…",
+    "a": "electrons",
+    "b": "neutrons",
+    "c": "shells",
+    "d": "valence electrons",
+    "answer": "b",
+    "explanation": "Isotopes = same Z, different mass numbers, so the neutron count (A - Z) differs."
+   },
+   {
+    "q": "The maximum number of electrons that can occupy the M shell (n = 3) is…",
+    "a": "2",
+    "b": "8",
+    "c": "18",
+    "d": "32",
+    "answer": "c",
+    "explanation": "Maximum capacity = 2n^2 = 2 x 9 = 18."
+   },
+   {
+    "q": "An atom of 23Na (mass number 23, atomic number 11) contains how many neutrons?",
+    "a": "11",
+    "b": "12",
+    "c": "23",
+    "d": "34",
+    "answer": "b",
+    "explanation": "Neutrons = A - Z = 23 - 11 = 12."
+   },
+   {
+    "q": "Which particle has a relative mass of about 1/1836 and a charge of -1?",
+    "a": "Proton",
+    "b": "Neutron",
+    "c": "Electron",
+    "d": "Alpha particle",
+    "answer": "c",
+    "explanation": "The electron is ~1836 times lighter than a proton and carries charge -1."
+   }
+  ]
+ },
+ {
+  "match": "Chemical Bonding — Lesson 01",
+  "theory": "CHEMICAL BONDING — KEY THEORY\n\nWhy atoms bond\n- Atoms bond to achieve a stable (noble gas) electron arrangement — usually a full outer shell (octet / duplet).\n\nIonic bonding (metal + non-metal)\n- Electrons are TRANSFERRED from metal to non-metal, forming cations (+) and anions (-).\n- Held by strong electrostatic attraction. e.g. NaCl, MgO, CaCl2.\n- Properties: high m.p., crystalline solids, conduct electricity when molten or in solution.\n\nCovalent bonding (non-metal + non-metal)\n- Electrons are SHARED in pairs. e.g. H2, Cl2, CH4, CO2.\n- A single bond = 1 shared pair; double bond = 2 pairs (O=C=O); triple bond = 3 pairs.\n- Simple molecules: low m.p., do not conduct. Giant covalent (diamond, SiO2): very hard, high m.p.\n\nMetallic bonding\n- Lattice of metal cations in a 'sea' of delocalised electrons -> conducts electricity and heat; malleable.\n\nExam tips\n- Draw dot-and-cross diagrams with the full outer shell only.\n- Remember: MgCl2 needs TWO Cl- ions per Mg2+.",
+  "questions": [
+   {
+    "q": "Sodium chloride (NaCl) is best described as…",
+    "a": "a covalent molecule",
+    "b": "an ionic compound",
+    "c": "a metallic solid",
+    "d": "a hydrogen-bonded liquid",
+    "answer": "b",
+    "explanation": "A metal (Na) + non-metal (Cl) -> electron transfer -> ionic lattice."
+   },
+   {
+    "q": "A covalent bond is formed when atoms…",
+    "a": "transfer electrons completely",
+    "b": "share a pair of electrons",
+    "c": "lose all valence electrons",
+    "d": "attract by van der Waals forces only",
+    "answer": "b",
+    "explanation": "Covalent = sharing of electron pairs between non-metal atoms."
+   },
+   {
+    "q": "Carbon dioxide (CO2) contains which bonds between carbon and oxygen?",
+    "a": "Two single bonds",
+    "b": "One single and one triple",
+    "c": "Two double bonds",
+    "d": "One ionic and one covalent",
+    "answer": "c",
+    "explanation": "O=C=O : carbon forms a double bond with each oxygen atom."
+   },
+   {
+    "q": "Which property is typical of an ionic compound?",
+    "a": "Low melting point",
+    "b": "Conducts electricity when molten",
+    "c": "Soft and easily bent",
+    "d": "Does not dissolve in water",
+    "answer": "b",
+    "explanation": "Ions are free to move when molten or in solution, so ionic compounds then conduct."
+   },
+   {
+    "q": "Metals conduct electricity because they contain…",
+    "a": "ions free to move",
+    "b": "delocalised electrons",
+    "c": "shared electron pairs",
+    "d": "protons free to move",
+    "answer": "b",
+    "explanation": "The 'sea' of delocalised electrons carries the current through the metal lattice."
+   }
+  ]
+ },
+ {
+  "match": "The Mole Concept & Stoichiometry",
+  "theory": "CHEMICAL CALCULATIONS — THE MOLE TOOLKIT\n\nThe core formulas\n- n = m / M        (moles = mass in grams / molar mass)\n- c = n / V        (concentration in mol dm-3 = moles / volume in dm3)\n- n = V / 22.4     (moles of gas = volume in dm3 / 22.4 dm3 mol-1 at STP)\n- Number of particles = n x L   (L = Avogadro constant = 6.022 x 10^23 mol-1)\n\nMolar mass\n- M of a compound = sum of relative atomic masses. e.g. M(H2O) = 2(1) + 16 = 18 g mol-1.\n- Worked example: moles in 36 g of water = m/M = 36/18 = 2 mol.\n\nConcentration\n- c = n/V with V in dm3  (1000 cm3 = 1 dm3).\n- Worked example: 0.5 mol in 250 cm3 -> V = 0.25 dm3 -> c = 0.5/0.25 = 2 mol dm-3.\n\nStoichiometry (mole ratios)\n- Read the ratio straight from the balanced equation.\n- e.g. N2 + 3H2 -> 2NH3 : 1 mol N2 needs 3 mol H2 and gives 2 mol NH3.\n\nExam tips\n- Convert cm3 to dm3 (divide by 1000) BEFORE using c = n/V.\n- Keep 3 significant figures and always write the unit.",
+  "questions": [
+   {
+    "q": "How many moles are there in 18 g of water? (H = 1, O = 16)",
+    "a": "0.5 mol",
+    "b": "1 mol",
+    "c": "2 mol",
+    "d": "18 mol",
+    "answer": "b",
+    "explanation": "n = m/M = 18/18 = 1 mol."
+   },
+   {
+    "q": "The volume occupied by 1 mole of any gas at STP is…",
+    "a": "1 dm3",
+    "b": "11.2 dm3",
+    "c": "22.4 dm3",
+    "d": "24 dm3",
+    "answer": "c",
+    "explanation": "Molar gas volume at STP = 22.4 dm3 mol-1."
+   },
+   {
+    "q": "A solution contains 0.25 mol of NaOH in 500 cm3. Its concentration is…",
+    "a": "0.125 mol dm-3",
+    "b": "0.25 mol dm-3",
+    "c": "0.5 mol dm-3",
+    "d": "2 mol dm-3",
+    "answer": "c",
+    "explanation": "V = 500 cm3 = 0.5 dm3;  c = n/V = 0.25/0.5 = 0.5 mol dm-3."
+   },
+   {
+    "q": "The Avogadro constant is…",
+    "a": "6.022 x 10^23 mol-1",
+    "b": "8.314 J K-1 mol-1",
+    "c": "22.4 dm3 mol-1",
+    "d": "1.6 x 10-19 C",
+    "answer": "a",
+    "explanation": "L = 6.022 x 10^23 particles per mole."
+   },
+   {
+    "q": "In the reaction N2 + 3H2 -> 2NH3, 1 mol of N2 reacts completely with…",
+    "a": "1 mol of H2",
+    "b": "2 mol of H2",
+    "c": "3 mol of H2",
+    "d": "6 mol of H2",
+    "answer": "c",
+    "explanation": "The balanced equation shows the ratio N2 : H2 = 1 : 3."
+   }
+  ]
+ },
+ {
+  "match": "Chemical Thermodynamics & Enthalpy",
+  "theory": "ENERGETICS — KEY THEORY\n\nExothermic vs endothermic\n- Exothermic: releases heat to the surroundings, DeltaH is NEGATIVE. e.g. combustion, neutralisation.\n- Endothermic: absorbs heat, DeltaH is POSITIVE. e.g. thermal decomposition, photosynthesis.\n\nEnthalpy change (DeltaH)\n- DeltaH = H(products) - H(reactants).\n- Exothermic pathway: reactants ABOVE products on the energy diagram.\n- Activation energy (Ea) = energy from reactants up to the peak (must be supplied to start).\n\nBond breaking and making\n- Breaking bonds ABSORBS energy; making bonds RELEASES energy.\n- DeltaH ~ (energy to break bonds) - (energy released making bonds).\n- If more energy is released making bonds than used breaking them, the reaction is exothermic.\n\nCalorimetry\n- q = mcDeltaT   (m = mass of solution, c = 4.2 J g-1 C-1 for water, DeltaT = temperature change).\n\nExam tips\n- State the sign of DeltaH in every answer.\n- A catalyst lowers Ea but does NOT change DeltaH.",
+  "questions": [
+   {
+    "q": "An exothermic reaction…",
+    "a": "absorbs heat and has a positive DeltaH",
+    "b": "releases heat and has a negative DeltaH",
+    "c": "always needs a catalyst",
+    "d": "has products above reactants on the energy diagram",
+    "answer": "b",
+    "explanation": "Exothermic = heat given out, so H(products) < H(reactants) and DeltaH < 0."
+   },
+   {
+    "q": "Bond breaking is always…",
+    "a": "exothermic",
+    "b": "endothermic",
+    "c": "neutral",
+    "d": "spontaneous",
+    "answer": "b",
+    "explanation": "Energy must be supplied to break bonds, so bond breaking is endothermic."
+   },
+   {
+    "q": "The activation energy of a reaction is…",
+    "a": "the energy of the products",
+    "b": "the energy given out overall",
+    "c": "the energy needed to reach the top of the energy barrier",
+    "d": "the energy in one mole of gas at STP",
+    "answer": "c",
+    "explanation": "Ea is the gap from the reactants up to the peak of the energy profile."
+   },
+   {
+    "q": "A catalyst speeds up a reaction by…",
+    "a": "increasing DeltaH",
+    "b": "lowering the activation energy",
+    "c": "increasing the temperature",
+    "d": "shifting the equilibrium to the right",
+    "answer": "b",
+    "explanation": "A catalyst provides an alternative pathway of lower Ea; DeltaH is unchanged."
+   },
+   {
+    "q": "50 g of water is heated and its temperature rises by 10 C. Heat absorbed is… (c = 4.2 J g-1 C-1)",
+    "a": "210 J",
+    "b": "420 J",
+    "c": "2100 J",
+    "d": "4200 J",
+    "answer": "c",
+    "explanation": "q = mcDeltaT = 50 x 4.2 x 10 = 2100 J."
+   }
+  ]
+ },
+ {
+  "match": "Chemical Equilibrium — Lesson 01",
+  "theory": "CHEMICAL EQUILIBRIUM — KEY THEORY\n\nDynamic equilibrium\n- In a closed system, forward and reverse reactions continue at EQUAL rates; concentrations stay constant.\n\nLe Chatelier's principle\n- If a constraint (change of concentration, pressure or temperature) is imposed on a system at equilibrium,\n  the system adjusts so as to oppose that constraint.\n\nPredicting the shift\n- Concentration: add a reactant -> shifts to the RIGHT (uses it up).\n- Pressure (gases only): increase pressure -> shifts to the side with FEWER moles of gas.\n- Temperature: increase T -> shifts in the ENDOTHERMIC direction.\n\nThe equilibrium constant Kc\n- For aA + bB <=> cC + dD :  Kc = [C]^c [D]^d / [A]^a [B]^b\n- Kc changes ONLY with temperature.\n- Big Kc -> products favoured; small Kc -> reactants favoured.\n\nIndustrial example — Haber process\n- N2 + 3H2 <=> 2NH3, DeltaH < 0.\n- High pressure (~200 atm): more NH3 (fewer gas moles on right).\n- Low temperature favours yield but is slow -> compromise ~450 C plus iron catalyst.\n\nExam tips\n- Catalyst does NOT change Kc or the position of equilibrium — it only speeds up attainment.\n- Write Kc expressions without solids or pure liquids.",
+  "questions": [
+   {
+    "q": "At dynamic equilibrium…",
+    "a": "both reactions stop",
+    "b": "only the forward reaction continues",
+    "c": "forward and reverse reactions occur at equal rates",
+    "d": "the products are all used up",
+    "answer": "c",
+    "explanation": "Dynamic = both processes continue, at the same rate, so concentrations stay constant."
+   },
+   {
+    "q": "For N2 + 3H2 <=> 2NH3, increasing the pressure shifts the equilibrium…",
+    "a": "to the left",
+    "b": "to the right",
+    "c": "no change",
+    "d": "only if a catalyst is present",
+    "answer": "b",
+    "explanation": "Right side has 2 moles of gas vs 4 on the left; higher pressure favours the side with fewer moles."
+   },
+   {
+    "q": "Raising the temperature of an exothermic equilibrium shifts it…",
+    "a": "to the right",
+    "b": "to the left (endothermic direction)",
+    "c": "no change",
+    "d": "completely to completion",
+    "answer": "b",
+    "explanation": "The system opposes the rise by moving in the endothermic (heat-absorbing) direction."
+   },
+   {
+    "q": "The value of Kc for a reaction is changed only by…",
+    "a": "adding a catalyst",
+    "b": "changing the temperature",
+    "c": "changing the pressure",
+    "d": "adding more reactant",
+    "answer": "b",
+    "explanation": "Kc depends only on temperature — concentration, pressure and catalysts do not alter it."
+   }
+  ]
+ }
+]

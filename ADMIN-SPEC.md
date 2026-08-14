@@ -372,7 +372,7 @@ Legend: ✅ done · 🟡 partial · ❌ not yet · ⛔ not planned (why)
 - Admin UI: ⚙️ Site → 🧪 Chem lab database (list + delete + two add forms).
 
 ## v2026.08.12t — Offline syllabus Guru + chem-lab polish
-- `offline_kb.json` (root) — shared syllabus knowledge bank loaded by server.py AND server.js.
+- `offline_kb.json` (root) — shared syllabus knowledge bank loaded by server.js.
 - `/api/ai/chat`: no key → offline match reply (`engine:'offline'`, no quota burn); Gemini HTTP/network failure → `engine:'offline_fallback'` answer instead of 502; success → `engine:'gemini'`. Gemini failures logged as `ai_gemini_err` in admin logs.
 - admin lore (ai_knowledge) is also searched by the offline matcher.
 - Chem lab: NaBr/NaI added (cream AgBr, yellow AgI + NH₃ follow-ups); fixed flame sample log + cell right-electrode chip state.

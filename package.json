@@ -2,14 +2,25 @@
   "name": "al-planner",
   "version": "1.0.0",
   "private": true,
-  "description": "AL Planner — Sri Lankan A/L learning platform (Chemistry, Combined Mathematics, Biology)",
+  "description": "AL Planner — Sri Lankan A/L learning platform (Chemistry, Combined Mathematics, Biology, Physics, ICT)",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "reseed": "node seed.js --force"
+    "reseed": "node seed.js --force",
+    "content": "node scripts/apply-content.js",
+    "content:subjects": "node scripts/add-subjects.js",
+    "content:cm-units": "node scripts/add-cm-units.js",
+    "content:chemistry": "node scripts/add-chemistry-lessons.js",
+    "content:cm-lessons": "node scripts/add-cm-lessons.js",
+    "content:physics": "node scripts/add-physics-lessons.js",
+    "content:physics2": "node scripts/add-physics-batch2.js",
+    "content:physics3": "node scripts/add-physics-batch3.js",
+    "content:tabs": "node scripts/add-lesson-tabs.js",
+    "content:links": "node scripts/add-syllabus-links.js",
+    "content:clean-demo": "node scripts/remove-demo-content.js"
   },
   "dependencies": {
-    "bcryptjs": "^3.0.2",
+    "bcryptjs": "^3.0.3",
     "better-sqlite3": "^12.2.0",
     "express": "^4.21.2",
     "multer": "^2.0.2"

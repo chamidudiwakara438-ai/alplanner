@@ -1,4 +1,4 @@
-FASTEST START (Windows): double-click  start-python-windows.bat  - it finds Python, installs Flask if needed, starts the website and opens your browser automatically.
+FASTEST START (Windows): double-click  start-windows.bat  - it finds Node.js, installs what is needed, starts the website and opens your browser automatically.
 
 > **NEWEST (2026-08-13w) — 🌊💧 PREMIUM FX **WAVE 3** (110 SIMS, 92 PRACTICALS)!** Eight more
 > PhET-grade sims in two packs. 🌊 **Waves FX**: Ripple Tank 2D (real-time wave field —
@@ -194,12 +194,9 @@ AL Planner is a **full website with a server and database** — not a plain HTML
 Opening `index.html` directly shows only an empty frame, because everything
 (students, lessons, videos, uploads, login) comes from the running server.
 
-**Good news: you can run it with EITHER Python or Node.js — pick whichever you have.**
+The whole site runs on **Node.js** — one runtime, one command.
 
-- Python version → `server.py` (needs: Python + `pip install flask`)
 - Node.js version → `server.js` (needs: Node.js + `npm install`)
-
-Both give you the exact same website, same logins, same database.
 
 ---
 
@@ -210,42 +207,44 @@ The website is **already running inside this workspace**. Click the
 
 ---
 
-## 2. Run with PYTHON (in VS Code or any terminal)
+## 2. Run with NODE.JS (in VS Code or any terminal)
 
-1. **Install Python** — https://www.python.org/downloads/
-   (Windows: in the installer, tick **"Add python.exe to PATH"**!)
+1. **Install Node.js LTS** — https://nodejs.org
 2. **Download + unzip the whole `al-planner` folder** from this workspace.
 3. In VS Code: **File → Open Folder…** → choose the unzipped `al-planner` folder
-   (the one that contains `server.py`).
+   (the one that contains `server.js`).
 4. Open the terminal: **Terminal → New Terminal** (`` Ctrl+` ``), then run:
-
-   ```bash
-   pip install flask
-   python server.py
-   ```
-
-   (On Mac/Linux use `pip3 install flask` then `python3 server.py`.)
-5. **Ctrl+click the http://localhost:3000** link in the terminal → your website opens.
-
-**Even easier:** on Windows just **double-click `start-python-windows.bat`**
-(on Mac/Linux: `bash start-python-mac-linux.sh`). It checks everything for you.
-
----
-
-## 3. Run with NODE.JS (alternative)
-
-1. Install Node.js LTS from https://nodejs.org
-2. Open the folder in VS Code, open a terminal, run:
 
    ```bash
    npm install
    npm start
    ```
 
-3. Open http://localhost:3000
+5. **Ctrl+click the http://localhost:3000** link in the terminal → your website opens.
 
-(Shortcuts: `start-windows.bat` / `bash start-mac-linux.sh`, or press **F5** in VS Code —
-a ready-made run config is included for the Node server.)
+**Even easier:** on Windows just **double-click `start-windows.bat`**
+(on Mac/Linux: `bash start-mac-linux.sh`). It checks everything for you.
+You can also press **F5** in VS Code — a ready-made run config is included.
+
+---
+
+## 3. Load the full lesson library
+
+The first start seeds a working site. To load the **complete** Chemistry / Physics /
+Combined Maths video packs, the lesson Theory + MCQ tabs and the syllabus links, stop
+the site (**Ctrl+C**) and run:
+
+```bash
+npm run content
+```
+
+Then start the website again and press **Ctrl+F5** in the browser.
+
+This is safe to run as many times as you like — anything already added is skipped.
+Individual packs (`npm run content:chemistry`, `content:physics`, `content:tabs`, …)
+are listed in `README.md`. The lesson data itself is plain JSON in the **`content/`**
+folder, so you can add new videos or links by editing a JSON file and re-running the
+matching command.
 
 ---
 
@@ -266,16 +265,17 @@ The `public/index.html` file is only the **shell**. The page asks the server:
 *"who is logged in? what subjects exist? show me lesson 7…"* — and JavaScript draws
 everything from the answers. Without the server there are no answers, so the page
 stays empty. Also **do not** use "Open with Live Server" — that only shows static
-files; run `server.py` (or `server.js`) instead.
+files; run `server.js` (`npm start`) instead.
 
 ## File guide (for editing in VS Code)
 
 | File | What it does |
 |---|---|
-| `server.py` | Python backend (Flask): login, uploads, approvals, all APIs |
-| `server.js` | Node.js backend (Express): identical features, pick one |
-| `db.js` / in-file schema | Database tables (SQLite — no install needed) |
-| `seed.js` / seed inside `server.py` | Demo lessons, videos, tutors, dummy accounts |
+| `server.js` | Node.js backend (Express): login, uploads, approvals, all APIs |
+| `db.js` | Database tables (SQLite — no install needed) |
+| `seed.js` | Demo lessons, videos, tutors, dummy accounts |
+| `content/*.json` | The lesson library (video packs, theory, MCQs, links) — edit these to add content |
+| `scripts/*.js` | The commands that load `content/` into the database (`npm run content`) |
 | `public/js/app.js` | The whole front-end app (pages, buttons, effects) |
 | `public/js/i18n.js` | English / Sinhala / Tamil text |
 | `public/css/style.css` | All styling (glass, 3D, animations) |

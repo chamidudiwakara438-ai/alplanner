@@ -4,23 +4,48 @@ A complete, full-stack learning platform for G.C.E. **A/L Chemistry, Combined Ma
 
 ## Quick start
 
-The backend ships in **two interchangeable runtimes** — use whichever you prefer:
+The backend is a single **Node.js (Express)** runtime:
 
 ```bash
-# Python (Flask)
-cd al-planner
-pip install flask
-python server.py         # → http://localhost:3000
-
-# — or —
-
-# Node.js (Express)
 cd al-planner
 npm install
 npm start                # → http://localhost:3000
 ```
 
-Both serve the identical API + website and share `data/` and `uploads/`. The database (SQLite) is created and seeded automatically on first run, including real PDF study materials and 24 video lessons.
+(Or just double-click `start-windows.bat` / run `./start-mac-linux.sh` — they install
+dependencies on first run and then start the site.)
+
+The database (SQLite) is created and seeded automatically on first run into `data/`,
+with uploads in `uploads/`, including real PDF study materials and video lessons.
+
+### Loading the full content library
+
+The seed gives you a working site; the **full lesson library** (Chemistry, Physics,
+Combined Maths video packs, lesson Theory/MCQ tabs and syllabus links) is applied by
+one command after the site has been started once:
+
+```bash
+npm run content          # applies everything, in order
+```
+
+Every step is **idempotent** — run it as often as you like, already-present lessons are
+skipped. Individual packs can be run on their own:
+
+| Command | What it does |
+|---|---|
+| `npm run content:clean-demo` | Removes demo lessons, fake teachers and demo tutors |
+| `npm run content:subjects` | Adds Physics + ICT with their official NIE unit lists |
+| `npm run content:cm-units` | Replaces the CM placeholders with the 19 official topic units |
+| `npm run content:chemistry` | Chemistry unit restructure + video lesson pack |
+| `npm run content:cm-lessons` | Combined Maths video lessons |
+| `npm run content:physics` | Physics bilingual units + main video pack |
+| `npm run content:physics2` / `:physics3` | Physics video lesson batches 2 and 3 |
+| `npm run content:tabs` | Lesson **Theory** + **MCQ questions** tabs |
+| `npm run content:links` | Syllabus / past-paper external link resources |
+
+The lesson data itself lives as plain JSON in **`content/`**, so you can add videos or
+links by editing a JSON file and re-running the matching command — no code changes
+needed. The scripts that apply them are in **`scripts/`**.
 
 ### Demo accounts
 
